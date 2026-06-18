@@ -67,9 +67,12 @@ npm run dev -- build-style          # writes prompts/sumo-style/ (opens ~14 brow
 
 Then generate from a brief, optionally grounded in source material (repeatable, mixed types — local `.txt/.md/.wiki/.html/.pdf`, images, SUMO slugs/URLs, or any web URL):
 
+`--source` = facts to ground in (synthesized). `--reference` = existing articles for style/structure/cross-links (never copied). Both accept the same input types and are repeatable.
+
 ```bash
-npm run dev -- draft "How to set up Gmail in Thunderbird" \
-  --source release-notes.pdf --source https://support.mozilla.org/en-US/kb/thunderbird-and-gmail
+npm run dev -- draft "Gmail setup for Thunderbird on Windows, beginner-friendly" \
+  --source release-notes.pdf \
+  --reference https://support.mozilla.org/en-US/kb/thunderbird-and-gmail
 
 npm run dev -- draft "..." --out draft.wiki   # write WikiMarkup to a file
 npm run dev -- draft "..." --doc              # stage as an editable Google Doc

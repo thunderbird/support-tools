@@ -74,7 +74,8 @@ program
   .command("draft")
   .description("Generate an on-style SUMO WikiMarkup article from a brief (+ optional sources)")
   .argument("<brief>", "what the article should cover")
-  .option("-s, --source <ref...>", "source material: file (.txt/.md/.wiki/.html/.pdf/image), SUMO slug/URL, or web URL")
+  .option("-s, --source <ref...>", "facts to ground in: file (.txt/.md/.wiki/.html/.pdf/image), SUMO slug/URL, or web URL")
+  .option("-r, --reference <ref...>", "existing articles for style/structure/cross-links (not copied); same input types as --source")
   .option("--doc", "stage the result as a Google Doc")
   .option("-o, --out <file>", "write the WikiMarkup to a file instead of stdout")
   .option("--dry-run", "assemble the prompt and report sizes without calling Claude")
@@ -93,6 +94,7 @@ program.parseAsync();
 
 interface DraftOptionsCli {
   source?: string[];
+  reference?: string[];
   doc?: boolean;
   out?: string;
   dryRun?: boolean;

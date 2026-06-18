@@ -6,8 +6,15 @@ import path from "node:path";
 import type Anthropic from "@anthropic-ai/sdk";
 
 const STYLE_DIR = path.resolve(process.cwd(), "prompts", "sumo-style");
+const CONVENTIONS_PATH = path.resolve(process.cwd(), "prompts", "thunderbird-conventions.md");
 
 const OUTPUT_RULES = `You are an expert writer for the Mozilla Support (SUMO) Knowledge Base, writing Thunderbird help articles. Follow the official SUMO style guidance provided below.
+
+Your task:
+- Write an ORIGINAL article that fulfills the brief. Decide the structure, headings, and steps yourself based on the brief and SUMO conventions.
+- "Source material" = facts to ground in. Synthesize from it in your own words; do not invent specifics beyond it.
+- "Reference articles" = existing SUMO articles provided for style, structure, terminology, and cross-links. Follow their conventions and link to them where relevant, but NEVER copy or reproduce them — write fresh prose scoped to the brief.
+- Do not reproduce any single input verbatim or near-verbatim.
 
 Output rules:
 - Output ONLY the article body in SUMO WikiMarkup. No code fences, no preamble, no closing commentary.
@@ -35,10 +42,22 @@ export async function loadStyleCorpus(): Promise<string> {
   return parts.join("\n\n---\n\n");
 }
 
-/** System prompt as cacheable blocks: stable rules first, large corpus cached. */
-export function buildSystemBlocks(corpus: string): Anthropic.TextBlockParam[] {
+/** Project-owned house conventions that override generic SUMO guidance; "" if absent. */
+export async function loadConventions(): Promise<string> {
+  try {
+    return (await fs.readFile(CONVENTIONS_PATH, "utf8")).trim();
+  } catch {
+    return "";
+  }
+}
+
+/** System prompt as cacheable blocks: stable rules + house conventions first, large corpus cached. */
+export function buildSystemBlocks(corpus: string, conventions: string): Anthropic.TextBlockParam[] {
+  const rules = conventions
+    ? `${OUTPUT_RULES}\n\n# Thunderbird house conventions (these OVERRIDE the general SUMO guidance below where they conflict)\n\n${conventions}`
+    : OUTPUT_RULES;
   return [
-    { type: "text", text: OUTPUT_RULES },
+    { type: "text", text: rules },
     {
       type: "text",
       text: `# Official SUMO Knowledge Base style guidance\n\n${corpus}`,
