@@ -2,19 +2,18 @@
 
 ADR-style log of decisions for the SUMO KB authoring tool. Newest context at the top of each section. "Confirmed" = agreed with the project owner; "Proposed" = awaiting confirmation.
 
-## ⏯️ Resume here (paused 2026-06-18, end of day)
+## ⏯️ Resume here (updated 2026-06-18)
 
-**Done:** Buckets 0–3 complete and committed (`fetch`, `import-source`, `to-markup` — full edit-existing round-trip validated live). Bucket 4 design decided (D12–D16). Bucket **4a built**: the `build-style` command (compiles SUMO's style articles → `prompts/sumo-style/`); code compiles, extraction + HTML→text verified on the root article.
+**Done:** Buckets 0–3 complete & committed. **Bucket 4 built** (4a `build-style` + 4b `draft`): style corpus compiled to `prompts/sumo-style/` (owner-reviewed ✓); `draft` generates WikiMarkup via Opus 4.8 and stages a Doc. Code compiles; offline `--dry-run` verified (corpus load + source handling + prompt assembly). **Not yet run against the live API** — needs the owner's `ANTHROPIC_API_KEY`.
 
-**Immediate next step (4a checkpoint — owner to run):**
+**Immediate next step (4b checkpoint — owner to run):**
 ```bash
-npm run dev -- build-style      # opens ~14 headed Chromium windows; writes prompts/sumo-style/
+export ANTHROPIC_API_KEY=...          # required for generation
+npm run dev -- draft "How to set up Gmail in Thunderbird" --source <optional sources> --out /tmp/draft.wiki
 ```
-Then review `prompts/sumo-style/` (esp. `writing-guide-knowledge-base-articles.md` and the `markup-chart.md` table). Confirm quality.
+Review the generated WikiMarkup for on-style + accuracy guardrails (grounded facts, `{note}TODO` for unknowns). Then try `--doc` to stage it in Google Docs. Iterate on the style corpus / prompt if needed.
 
-**Then Bucket 4b (next build):** source loaders (`.txt/.md/.wiki/.html/.pdf/images/URLs/SUMO slugs`, per D16) + the `draft` command (brief + sources → on-style WikiMarkup → Doc via the existing pipeline). **Prerequisite:** set `ANTHROPIC_API_KEY` (export in shell, or ask Claude to wire `.env` loading). Model = Opus 4.8, streamed (D13).
-
-**Later:** Bucket 5 convert-path, Bucket 6 publish-convenience, Bucket 7 style checker; `revise <existing>` follow-on.
+**Later:** Bucket 5 convert-path, Bucket 6 publish-convenience, Bucket 7 style checker; `revise <existing>` follow-on (compose `to-markup` → `draft`).
 
 ## Project intent
 
@@ -77,7 +76,7 @@ Then review `prompts/sumo-style/` (esp. `writing-guide-knowledge-base-articles.m
 | 1 | Read path: slug → Google Doc | First workflow + Google auth plumbing; fallback (a) edit path *(done — verified live 2026-06-17)* |
 | 2 | **Inbound converter: WikiMarkup source → editable Google Doc** (high-fidelity (b) edit path) | Editing existing articles — the most common case *(done — validated on synthetic sample 2026-06-17; real-article hardening pending, O3)* |
 | 3 | Outbound converter: Google Doc → paste-ready WikiMarkup | Closes the semi-automated publish loop *(DONE 2026-06-18 — faithful round-trip validated live on real.wiki: lists, headings, bold/italic, protected tokens all preserved; only cosmetic blank-line/whitespace diffs)* |
-| 4 | Generation (Claude drafts on-style into a Doc) | Core time-saver |
+| 4 | Generation (Claude drafts on-style into a Doc) | Core time-saver *(built 2026-06-18 — `build-style` + `draft`; offline-verified, live API run pending owner's key)* |
 | 5 | Convert path (threads/release notes → KB draft) | Broaden inputs |
 | 6 | Publish/sync (open SUMO edit page with paste-ready WikiMarkup) | Close the loop |
 | 7 | Style checker across the KB | Sustain consistency |

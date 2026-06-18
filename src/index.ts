@@ -4,6 +4,7 @@ import { runFetch } from "./commands/fetch.js";
 import { runImportSource } from "./commands/importSource.js";
 import { runToMarkup } from "./commands/toMarkup.js";
 import { runBuildStyle } from "./commands/buildStyle.js";
+import { runDraft } from "./commands/draft.js";
 
 const program = new Command();
 
@@ -69,4 +70,32 @@ program
     }
   });
 
+program
+  .command("draft")
+  .description("Generate an on-style SUMO WikiMarkup article from a brief (+ optional sources)")
+  .argument("<brief>", "what the article should cover")
+  .option("-s, --source <ref...>", "source material: file (.txt/.md/.wiki/.html/.pdf/image), SUMO slug/URL, or web URL")
+  .option("--doc", "stage the result as a Google Doc")
+  .option("-o, --out <file>", "write the WikiMarkup to a file instead of stdout")
+  .option("--dry-run", "assemble the prompt and report sizes without calling Claude")
+  .option("-m, --model <model>", "Claude model", "claude-opus-4-8")
+  .option("-t, --title <title>", "Doc title (default: first heading)")
+  .action(async (brief: string, options: DraftOptionsCli) => {
+    try {
+      await runDraft(brief, options);
+    } catch (err) {
+      console.error(`\n❌ ${err instanceof Error ? err.message : String(err)}`);
+      process.exit(1);
+    }
+  });
+
 program.parseAsync();
+
+interface DraftOptionsCli {
+  source?: string[];
+  doc?: boolean;
+  out?: string;
+  dryRun?: boolean;
+  model: string;
+  title?: string;
+}

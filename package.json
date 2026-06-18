@@ -17,6 +17,7 @@
     "node": ">=18"
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "^0.105.0",
     "@google-cloud/local-auth": "^3.0.1",
     "cheerio": "^1.0.0",
     "commander": "^12.1.0",

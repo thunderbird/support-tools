@@ -52,3 +52,17 @@ export async function fetchJson<T>(url: string, timeoutMs = 45000): Promise<T> {
     await browser.close();
   }
 }
+
+/** Fetch a web page's rendered HTML (for generic-URL sources). */
+export async function fetchPageHtml(url: string, timeoutMs = 45000): Promise<string> {
+  const browser = await chromium.launch({ headless: HEADLESS });
+  try {
+    const context = await browser.newContext({ userAgent: CHROME_UA });
+    const page = await context.newPage();
+    await page.goto(url, { waitUntil: "domcontentloaded", timeout: timeoutMs });
+    await page.waitForTimeout(1500); // let JS-rendered content settle
+    return await page.content();
+  } finally {
+    await browser.close();
+  }
+}

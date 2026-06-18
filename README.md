@@ -57,6 +57,27 @@ The command prints the URL of the created Google Doc.
 > challenge that blocks plain HTTP clients and even headless browsers (it shows a CAPTCHA),
 > so reads run through a real (headed) browser. Don't close the window; it closes itself.
 
+### Generate a draft article (Bucket 4)
+
+Requires an **`ANTHROPIC_API_KEY`** in your environment. First compile SUMO's style guidance once (re-run to refresh):
+
+```bash
+npm run dev -- build-style          # writes prompts/sumo-style/ (opens ~14 browser windows)
+```
+
+Then generate from a brief, optionally grounded in source material (repeatable, mixed types — local `.txt/.md/.wiki/.html/.pdf`, images, SUMO slugs/URLs, or any web URL):
+
+```bash
+npm run dev -- draft "How to set up Gmail in Thunderbird" \
+  --source release-notes.pdf --source https://support.mozilla.org/en-US/kb/thunderbird-and-gmail
+
+npm run dev -- draft "..." --out draft.wiki   # write WikiMarkup to a file
+npm run dev -- draft "..." --doc              # stage as an editable Google Doc
+npm run dev -- draft "..." --dry-run          # assemble the prompt only, no API call
+```
+
+The draft is **AI-generated for human review**: facts are grounded in your sources, and anything uncertain is flagged as a visible `{note}TODO{/note}` or `[[Image:PLACEHOLDER]]`.
+
 ## Develop
 
 ```bash

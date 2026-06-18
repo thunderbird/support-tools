@@ -49,8 +49,18 @@ Note: ESM + `NodeNext` means relative imports must use `.js` extensions (e.g. `i
 - `src/wikimarkup/docModel.ts` — parse that HTML into a block/run model (cheerio) for the Docs API builder.
 - `src/wikimarkup/fromDoc.ts` — Docs API document → WikiMarkup (reverse of toHtml; protected tokens are highlighted runs emitted verbatim).
 - `src/constants.ts` — `CONTENT_MARKER` boundary line separating metadata header from article body.
-- `src/commands/` — one file per CLI command (`fetch`, `import-source`, `to-markup`).
+- `src/stageDoc.ts` — shared WikiMarkup → Google Doc stage (used by `import-source` and `draft`).
+- `src/html.ts` — HTML → readable text (style corpus, `.html`/web-page sources).
+- `src/sources.ts` — load/normalize `draft` sources (text + Claude-native PDF/image blocks).
+- `src/prompts.ts` — load the style corpus + build the generation system prompt.
+- `src/anthropic/draft.ts` — Claude call (Opus 4.8, adaptive thinking, streamed).
+- `src/commands/` — one file per CLI command (`fetch`, `import-source`, `to-markup`, `build-style`, `draft`).
+- `prompts/sumo-style/` — compiled SUMO style corpus (regenerate with `build-style`).
 - `samples/` — `.wiki` fixtures (incl. `real.wiki`) for testing the converters.
+
+## Generation (Bucket 4)
+
+`draft` outputs WikiMarkup (D12) via Claude **Opus 4.8** (`claude-opus-4-8`, adaptive thinking, streamed; `@anthropic-ai/sdk`) and feeds it through the same `import-source` pipeline. On-style via the compiled SUMO style corpus (D14). Needs `ANTHROPIC_API_KEY`. Drafts are review-first: uncertainties become `{note}TODO{/note}` / `[[Image:PLACEHOLDER]]` (D15).
 
 ## Secrets
 
