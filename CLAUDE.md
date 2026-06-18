@@ -1,0 +1,57 @@
+# CLAUDE.md
+
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+
+## What this project is
+
+A toolset to draft, edit, and publish **SUMO Knowledge Base articles** (support.mozilla.org) using **Google Docs** as a staging/collaboration surface. SUMO is the source of truth; Google Docs is for drafting and review only. Primary users are the Thunderbird support team + trusted community contributors.
+
+Read [`docs/DECISIONS.md`](docs/DECISIONS.md) first — it is the canonical record of goals, scope, discovery findings, and every architectural decision (Dn). Keep it updated as decisions are made; do not let the code drift from it.
+
+## Working style (agreed with the project owner)
+
+- Build in **small agile buckets, one at a time**. For each bucket: present a plan, then stop at a **checkpoint** for review before moving on.
+- **Verify key decisions explicitly** to avoid drift from the original intent.
+
+## Hard constraints from discovery (Bucket 0)
+
+These shape the whole architecture — see DECISIONS.md for detail:
+
+- **Read** SUMO via `GET https://support.mozilla.org/api/1/kb/<slug>` → JSON; the body comes back as **rendered HTML, not wiki source**. The host is behind a **bot challenge**: plain HTTP and *headless* Chromium are blocked (CAPTCHA), so reads go through a **headed Playwright browser** (`src/browser.ts`, D7). A Chromium window opens briefly on each fetch.
+- There is **no write API** for KB articles. Publishing is **semi-automated**: the tool produces paste-ready **WikiMarkup** and a human pastes it into the SUMO edit form.
+- SUMO articles are authored in **WikiMarkup** (`'''bold'''`, `== heading ==`, `{for win,mac}`, `{note}`, templates) — see https://support.mozilla.org/en-US/kb/markup-chart. HTML↔WikiMarkup conversion is a central concern.
+- **Editing existing articles:** primary path is the editor pasting the real WikiMarkup source; reconstructing from API HTML is a lossy fallback.
+
+## Stack & commands
+
+TypeScript + Node.js (ESM, `NodeNext`). Official SDKs: `googleapis` (Docs/Drive), and `@anthropic-ai/sdk` (Claude) for later LLM buckets.
+
+```bash
+npm install
+npm run dev -- <command>   # run CLI from source via tsx
+npm run typecheck          # tsc --noEmit
+npm run build              # compile to dist/
+npm run fetch -- <slug>    # Bucket 1: fetch a SUMO article into a Google Doc
+```
+
+Note: ESM + `NodeNext` means relative imports must use `.js` extensions (e.g. `import { x } from "./sumo.js"`) even though the source is `.ts`.
+
+## Layout
+
+- `src/index.ts` — CLI entry (commander).
+- `src/sumo.ts` — read-only SUMO KB API client.
+- `src/browser.ts` — headed Playwright `fetchJson` (gets past the SUMO bot wall).
+- `src/google/auth.ts` — Google OAuth desktop flow; caches token (+ granted scopes) in `token.json`; auto re-consents when required scopes change.
+- `src/google/drive.ts` — create Docs by importing HTML (used by `fetch` only; lossy for lists).
+- `src/google/docs.ts` — read a Doc's structured content via the Docs API.
+- `src/google/docsCreate.ts` — build a Doc programmatically via Docs API `batchUpdate` (used by `import-source`; preserves list numbering — D11).
+- `src/wikimarkup/toHtml.ts` — WikiMarkup → HTML ("readable + protected tokens", D9).
+- `src/wikimarkup/docModel.ts` — parse that HTML into a block/run model (cheerio) for the Docs API builder.
+- `src/wikimarkup/fromDoc.ts` — Docs API document → WikiMarkup (reverse of toHtml; protected tokens are highlighted runs emitted verbatim).
+- `src/constants.ts` — `CONTENT_MARKER` boundary line separating metadata header from article body.
+- `src/commands/` — one file per CLI command (`fetch`, `import-source`, `to-markup`).
+- `samples/` — `.wiki` fixtures (incl. `real.wiki`) for testing the converters.
+
+## Secrets
+
+`credentials.json` (OAuth client) and `token.json` (cached token) live in the repo root and are gitignored. Never commit them.

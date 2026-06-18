@@ -1,0 +1,33 @@
+= Set up Thunderbird with Gmail =
+
+This article explains how to configure '''Gmail''' in ''Thunderbird''.
+
+== Before you start ==
+
+Make sure you have:
+
+* A Gmail account
+* Thunderbird {for win}for Windows{/for}{for mac}for Mac{/for} installed
+* An internet connection
+
+== Steps ==
+
+# Open Thunderbird and go to {menu Account Settings}.
+# Click {button Add Account}.
+## Choose '''Email''' as the account type.
+## Enter your address and press {key Enter}.
+# Your configuration file is at {filepath profiles.ini}.
+
+{note}You may need an [https://support.google.com/accounts/answer/185833 app password] for older clients.{/note}
+
+{warning}Do not share your password with anyone.{/warning}
+
+See also [[Thunderbird and Gmail|the Gmail overview]] and the screenshot [[Image:gmail-settings.png|width=400]].
+
+[[Template:Gmailwarning]]
+
+----
+
+==== Server details ====
+
+Use <code>imap.gmail.com</code> as the incoming server. When prompted, press <u>OK</u>.
