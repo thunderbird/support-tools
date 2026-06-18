@@ -3,6 +3,7 @@ import { Command } from "commander";
 import { runFetch } from "./commands/fetch.js";
 import { runImportSource } from "./commands/importSource.js";
 import { runToMarkup } from "./commands/toMarkup.js";
+import { runBuildStyle } from "./commands/buildStyle.js";
 
 const program = new Command();
 
@@ -49,6 +50,19 @@ program
   .action(async (doc: string, options: { out?: string; debugLists?: boolean }) => {
     try {
       await runToMarkup(doc, options);
+    } catch (err) {
+      console.error(`\n❌ ${err instanceof Error ? err.message : String(err)}`);
+      process.exit(1);
+    }
+  });
+
+program
+  .command("build-style")
+  .description("Compile the SUMO KB style corpus (prompts/sumo-style/) for generation")
+  .option("-l, --locale <locale>", "locale", "en-US")
+  .action(async (options: { locale: string }) => {
+    try {
+      await runBuildStyle(options);
     } catch (err) {
       console.error(`\n❌ ${err instanceof Error ? err.message : String(err)}`);
       process.exit(1);

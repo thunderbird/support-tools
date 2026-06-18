@@ -2,6 +2,7 @@
 // NOTE 1: this endpoint returns RENDERED HTML, not wiki source (see docs/DECISIONS.md, Bucket 0).
 // NOTE 2: the host is behind a bot challenge, so reads go through a headless browser (browser.ts).
 
+import * as cheerio from "cheerio";
 import { fetchJson } from "./browser.js";
 
 export interface SumoArticle {
@@ -33,4 +34,19 @@ export async function fetchArticle(slug: string, locale = "en-US"): Promise<Sumo
     );
   }
   return data;
+}
+
+/** Extract distinct KB article slugs linked from rendered article HTML. */
+export function extractKbSlugs(html: string, excludeSlug?: string): string[] {
+  const $ = cheerio.load(html);
+  const slugs = new Set<string>();
+  $("a[href]").each((_i, el) => {
+    const href = $(el).attr("href") ?? "";
+    const m = /^(?:https?:\/\/support\.mozilla\.org)?\/[a-z]{2}-[A-Z]{2}\/kb\/([^/?#]+)\/?$/i.exec(
+      href,
+    );
+    if (m) slugs.add(m[1]);
+  });
+  if (excludeSlug) slugs.delete(excludeSlug);
+  return [...slugs];
 }

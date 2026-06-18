@@ -2,6 +2,20 @@
 
 ADR-style log of decisions for the SUMO KB authoring tool. Newest context at the top of each section. "Confirmed" = agreed with the project owner; "Proposed" = awaiting confirmation.
 
+## ⏯️ Resume here (paused 2026-06-18, end of day)
+
+**Done:** Buckets 0–3 complete and committed (`fetch`, `import-source`, `to-markup` — full edit-existing round-trip validated live). Bucket 4 design decided (D12–D16). Bucket **4a built**: the `build-style` command (compiles SUMO's style articles → `prompts/sumo-style/`); code compiles, extraction + HTML→text verified on the root article.
+
+**Immediate next step (4a checkpoint — owner to run):**
+```bash
+npm run dev -- build-style      # opens ~14 headed Chromium windows; writes prompts/sumo-style/
+```
+Then review `prompts/sumo-style/` (esp. `writing-guide-knowledge-base-articles.md` and the `markup-chart.md` table). Confirm quality.
+
+**Then Bucket 4b (next build):** source loaders (`.txt/.md/.wiki/.html/.pdf/images/URLs/SUMO slugs`, per D16) + the `draft` command (brief + sources → on-style WikiMarkup → Doc via the existing pipeline). **Prerequisite:** set `ANTHROPIC_API_KEY` (export in shell, or ask Claude to wire `.env` loading). Model = Opus 4.8, streamed (D13).
+
+**Later:** Bucket 5 convert-path, Bucket 6 publish-convenience, Bucket 7 style checker; `revise <existing>` follow-on.
+
 ## Project intent
 
 - **Goal:** Reduce the effort/time for the Thunderbird support team and trusted community contributors to get a **publish-ready KB article into SUMO** (support.mozilla.org) — for both **new articles** and **edits to existing ones**.
@@ -45,6 +59,15 @@ ADR-style log of decisions for the SUMO KB authoring tool. Newest context at the
 - **O3 — Real-article parser hardening.** *Validated against one real article (`thunderbird main window`, 2026-06-17).* Conversion was highly faithful (59 tokens preserved). Two gaps found and fixed: `__TOC__` magic word (now `magic-word` token) and leading `;`/`:` definition-list/indent markers (now `indent` token). Still only one real article — more will surface more (tables to render, `<nowiki>`, etc.). Keep `real.wiki` as a regression fixture.
 
 - **O2 — Server/web deployment of the browser fetch.** D7 requires *headed* Chromium today (headless is CAPTCHA-walled). A future web-app backend has no display, so it will need xvfb, a stealth/anti-detection layer, or an allowlisted API (O1b). Revisit at the web-app bucket.
+
+## Bucket 4 — Generation design (decided 2026-06-18)
+
+- **D12 — Generation outputs WikiMarkup**, fed through the existing `import-source` pipeline (→ Doc) so drafts round-trip and reuse Buckets 2–3. Claude emits SUMO WikiMarkup directly.
+- **D13 — Model: Claude Opus 4.8 (`claude-opus-4-8`)** via the official `@anthropic-ai/sdk`, `thinking: {type:"adaptive"}`, **streamed** (`.stream()`/`.finalMessage()`). Configurable via flag. Requires `ANTHROPIC_API_KEY`. Cache the (stable) style-guide system prompt so repeated drafts are cheap.
+- **D14 — On-style via SUMO's OWN style articles, compiled — not hand-drafted.** Source of truth = `support.mozilla.org/en-US/kb/improve-knowledge-base` + every article it links to under `/en-US/kb/`. A `build-style` command discovers those links dynamically (fetch root → parse `/en-US/kb/` hrefs → fetch each via the existing `fetch` path → cheerio text) and compiles them into `prompts/sumo-style/` (committed, refreshable). This corpus also supplies the WikiMarkup syntax rules (it includes markup-chart, markup-cheat-sheet, how-to-use-for, using-templates). Currently 13 linked articles: anatomy-of-a-knowledge-base-article, create-new-knowledge-base-article, edit-knowledge-base-article, markup-cheat-sheet, about-knowledge-base, writing-guide-knowledge-base-articles, article-metadata, when-and-how-to-use-keywords, how-to-make-screenshots, how-place-images-article, markup-chart, how-to-use-for, using-templates. `access-mozilla-services-firefox-account` is also linked but EXCLUDED (a product article, not writing guidance) via an exclusion set in `build-style`.
+- **D15 — Accuracy guardrails:** ground claims in `--source` material; do NOT invent UI specifics; mark uncertainties as visible `{note}` TODOs and `[[Image:PLACEHOLDER]]`; human review in the Doc makes it publish-ready (matches the core decision).
+- **D16 — `--source` is repeatable and mixed-type.** v1 supports ALL of: local `.txt`/`.md`/`.wiki`/`.html` (→ text; HTML stripped via cheerio), local `.pdf` (Claude-native document block), local images `.png`/`.jpg`/`.jpeg`/`.gif`/`.webp` (Claude-native vision), SUMO articles by slug/URL (reuse `fetch` → rendered text), and generic web pages by URL (Playwright → text). Detection by `http(s)://` prefix (SUMO host → KB article path) else file extension; unknown types error clearly. For reference articles, `.wiki` source is preferred over a slug/URL's rendered text (D3 fidelity tradeoff).
+- **Scope:** `build-style` + `draft` (new articles) this bucket; `revise <existing>` (to-markup an article → feed to Claude with an instruction) is a composing follow-on.
 
 ## Bucket roadmap
 
