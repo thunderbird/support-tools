@@ -81,6 +81,28 @@ npm run dev -- draft "..." --dry-run          # assemble the prompt only, no API
 
 The draft is **AI-generated for human review**: facts are grounded in your sources, and anything uncertain is flagged as a visible `{note}TODO{/note}` or `[[Image:PLACEHOLDER]]`.
 
+### Revise an existing article
+
+Revise a `.wiki` file, a SUMO slug/URL, or a Google Doc per an instruction (same `--source`/`--reference`/`--out`/`--doc`/`--dry-run` options as `draft`):
+
+```bash
+npm run dev -- revise https://support.mozilla.org/en-US/kb/thunderbird-and-gmail \
+  --instruction "Update for Thunderbird 128 and add a troubleshooting section" --out revised.wiki
+```
+
+(For high-fidelity edits, pass the real `.wiki` source rather than a slug/URL — see D3.)
+
+### Publish (semi-automated)
+
+Copy paste-ready WikiMarkup to the clipboard and open the SUMO edit page (SUMO has no write API — submission is manual by design):
+
+```bash
+npm run dev -- publish revised.wiki --slug thunderbird-and-gmail   # edit existing
+npm run dev -- publish draft.wiki --new                            # new article
+```
+
+`<source>` can be a `.wiki` file or a Google Doc URL/id (the doc you reviewed). Paste into the article's Content field and submit for review.
+
 ## Develop
 
 ```bash

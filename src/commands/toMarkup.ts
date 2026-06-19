@@ -7,7 +7,7 @@ import { getDocument } from "../google/docs.js";
 import { docToWikiMarkup } from "../wikimarkup/fromDoc.js";
 
 /** Accept a raw Doc id or a full Docs URL. */
-function parseDocId(input: string): string {
+export function parseDocId(input: string): string {
   const m = /\/document\/d\/([a-zA-Z0-9_-]+)/.exec(input);
   return m ? m[1] : input.trim();
 }

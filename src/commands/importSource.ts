@@ -3,8 +3,9 @@
 // See docs/DECISIONS.md D8/D9/D11.
 
 import { promises as fs } from "node:fs";
-import { wikiToHtml, type WikiConversionReport } from "../wikimarkup/toHtml.js";
+import { wikiToHtml } from "../wikimarkup/toHtml.js";
 import { wikiToGoogleDoc } from "../stageDoc.js";
+import { deriveTitle, printReport } from "../output.js";
 
 interface ImportOptions {
   title?: string;
@@ -17,26 +18,13 @@ async function readStdin(): Promise<string> {
   return Buffer.concat(chunks).toString("utf8");
 }
 
-/** Derive a Doc title from the first top-level heading, else a default. */
-export function deriveTitle(source: string, fallback = "Imported SUMO article"): string {
-  const m = /^\s*=+\s*(.+?)\s*=+\s*$/m.exec(source);
-  return m ? m[1] : fallback;
-}
-
-export function printReport(report: WikiConversionReport): void {
-  console.log(`\nProtected tokens preserved verbatim: ${report.totalProtected}`);
-  for (const [kind, n] of Object.entries(report.protectedByKind).sort()) {
-    console.log(`  ${kind}: ${n}`);
-  }
-}
-
 export async function runImportSource(file: string | undefined, options: ImportOptions): Promise<void> {
   const source = file ? await fs.readFile(file, "utf8") : await readStdin();
   if (!source.trim()) {
     throw new Error("No WikiMarkup provided (empty file/stdin).");
   }
 
-  const title = options.title ?? deriveTitle(source);
+  const title = options.title ?? deriveTitle(source, "Imported SUMO article");
 
   if (options.html) {
     const { html, report } = wikiToHtml(source);

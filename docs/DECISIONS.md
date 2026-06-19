@@ -4,16 +4,28 @@ ADR-style log of decisions for the SUMO KB authoring tool. Newest context at the
 
 ## ⏯️ Resume here (updated 2026-06-18)
 
-**Done:** Buckets 0–3 complete & committed. **Bucket 4 built** (4a `build-style` + 4b `draft`): style corpus compiled to `prompts/sumo-style/` (owner-reviewed ✓); `draft` generates WikiMarkup via Opus 4.8 and stages a Doc. Code compiles; offline `--dry-run` verified (corpus load + source handling + prompt assembly). **Not yet run against the live API** — needs the owner's `ANTHROPIC_API_KEY`.
+**Done & committed:** Buckets 0–4 + `revise` + `publish` (Bucket 6). `draft` validated live by the owner (on-style; app-menu house rule applied). Everything else compiles and is offline-verified (dry-runs, URL construction); the items below need a live API key / browser / SUMO login, so they could not be auto-verified.
 
-**Immediate next step (4b checkpoint — owner to run):**
-```bash
-export ANTHROPIC_API_KEY=...          # required for generation
-npm run dev -- draft "How to set up Gmail in Thunderbird" --source <optional sources> --out /tmp/draft.wiki
-```
-Review the generated WikiMarkup for on-style + accuracy guardrails (grounded facts, `{note}TODO` for unknowns). Then try `--doc` to stage it in Google Docs. Iterate on the style corpus / prompt if needed.
+**🔲 LIVE-RUN TODOs (owner — do next, e.g. tomorrow). Requires `export ANTHROPIC_API_KEY=...` for 1 & 3.**
 
-**Later:** Bucket 5 convert-path, Bucket 6 publish-convenience, Bucket 7 style checker; `revise <existing>` follow-on (compose `to-markup` → `draft`).
+1. **`revise`** — run:
+   ```bash
+   npm run dev -- revise https://support.mozilla.org/en-US/kb/thunderbird-desktop-and-thundermail \
+     --instruction "add a short troubleshooting section; use the app menu for menu steps" --out /tmp/revised.wiki
+   ```
+   Check: full revised article; correct content preserved; menu steps use `{menu ☰}`; unknowns flagged as `{note}TODO`. (For full fidelity pass real `.wiki` source, not a slug — D3.) Also try `--doc`.
+
+2. **`publish`** — run:
+   ```bash
+   npm run dev -- publish /tmp/revised.wiki --slug thunderbird-desktop-and-thundermail
+   ```
+   Check: WikiMarkup copied to clipboard; SUMO edit page opens; paste works. Try `--new` for a new article. (Manual submit by design — D2.)
+
+3. **Full loop (optional)** — `draft "..." --doc` → edit in Google Docs → `to-markup <doc-url> --out x.wiki` → `publish x.wiki --slug ...`.
+
+After running, note any prompt/style tweaks (e.g. add house rules to `prompts/thunderbird-conventions.md`).
+
+**Later:** Bucket 7 (style checker across the KB). Bucket 5 convert-path is largely covered by `draft --source`.
 
 ## Project intent
 
@@ -77,9 +89,10 @@ Review the generated WikiMarkup for on-style + accuracy guardrails (grounded fac
 | 2 | **Inbound converter: WikiMarkup source → editable Google Doc** (high-fidelity (b) edit path) | Editing existing articles — the most common case *(done — validated on synthetic sample 2026-06-17; real-article hardening pending, O3)* |
 | 3 | Outbound converter: Google Doc → paste-ready WikiMarkup | Closes the semi-automated publish loop *(DONE 2026-06-18 — faithful round-trip validated live on real.wiki: lists, headings, bold/italic, protected tokens all preserved; only cosmetic blank-line/whitespace diffs)* |
 | 4 | Generation (Claude drafts on-style into a Doc) | Core time-saver *(built 2026-06-18 — `build-style` + `draft`; offline-verified, live API run pending owner's key)* |
-| 5 | Convert path (threads/release notes → KB draft) | Broaden inputs |
-| 6 | Publish/sync (open SUMO edit page with paste-ready WikiMarkup) | Close the loop |
+| 5 | Convert path (threads/release notes → KB draft) | Broaden inputs — *largely subsumed by `draft --source` (D16)* |
+| 6 | Publish/sync (open SUMO edit page with paste-ready WikiMarkup) | Close the loop *(built 2026-06-18 — `publish` copies WikiMarkup + opens edit page; manual submit per D2)* |
 | 7 | Style checker across the KB | Sustain consistency |
+| — | `revise <existing>` (edit existing per instruction) | *(built 2026-06-18 — composes existing-loader + generation + emit)* |
 
 ## Bucket 1 — Scope
 

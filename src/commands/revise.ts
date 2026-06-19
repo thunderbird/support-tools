@@ -1,12 +1,15 @@
-// `sumo draft` — generate an on-style SUMO WikiMarkup article from a brief plus
-// optional source/reference material, and emit it (Doc / file / stdout). See Bucket 4.
+// `sumo revise <existing>` — revise an existing article per an instruction, using
+// Claude + the SUMO style corpus, and emit the full revised WikiMarkup. Composes
+// the existing-article loader, generation, and output staging.
 
 import { loadStyleCorpus, loadConventions, buildSystemBlocks } from "../prompts.js";
 import { loadSources } from "../sources.js";
+import { loadExistingWiki } from "../existing.js";
 import { generateWikiMarkup } from "../anthropic/draft.js";
 import { emitWiki } from "../output.js";
 
-interface DraftOptions {
+interface ReviseOptions {
+  instruction?: string;
   source?: string[];
   reference?: string[];
   out?: string;
@@ -18,40 +21,45 @@ interface DraftOptions {
 
 type Labeled = { label: string; text: string };
 
-function buildUserText(brief: string, sources: Labeled[], references: Labeled[]): string {
-  let t = `# Article brief\n\n${brief}\n`;
+function buildReviseText(
+  instruction: string,
+  existingWiki: string,
+  sources: Labeled[],
+  references: Labeled[],
+): string {
+  let t = `# Revision instruction\n\n${instruction}\n`;
+  t +=
+    `\n# Existing article — revise THIS. Output the FULL revised article in SUMO WikiMarkup. ` +
+    `Preserve content that is still correct, and keep existing protected tokens ({for}, {note}, ` +
+    `[[Image:...]], templates, internal links) intact unless the instruction requires changing them.\n\n` +
+    `${existingWiki}\n`;
 
   if (sources.length > 0) {
     const body = sources.map((s) => `## Source: ${s.label}\n\n${s.text}`).join("\n\n");
-    t += `\n# Source material (ground all facts in these; do not invent specifics)\n\n${body}\n`;
-  } else {
-    t +=
-      `\n# Source material\n\nNone provided. Be especially careful not to invent specifics; ` +
-      `mark anything uncertain as {note}TODO{/note}.\n`;
+    t += `\n# New source material (ground new facts in these; do not invent specifics)\n\n${body}\n`;
   }
-
   if (references.length > 0) {
     const body = references.map((r) => `## Reference: ${r.label}\n\n${r.text}`).join("\n\n");
-    t +=
-      `\n# Reference articles (for SUMO style, structure, terminology, and cross-links — ` +
-      `do NOT copy or reproduce these; write an original article for the brief)\n\n${body}\n`;
+    t += `\n# Reference articles (style/structure/cross-links — do NOT copy)\n\n${body}\n`;
   }
-
   return t;
 }
 
-export async function runDraft(brief: string | undefined, options: DraftOptions): Promise<void> {
-  if (!brief || !brief.trim()) {
-    throw new Error('Provide a brief, e.g. draft "How to set up Gmail in Thunderbird".');
+export async function runRevise(existing: string, options: ReviseOptions): Promise<void> {
+  if (!options.instruction || !options.instruction.trim()) {
+    throw new Error('Provide --instruction, e.g. revise <article> --instruction "update for Thunderbird 128".');
   }
 
   const corpus = await loadStyleCorpus();
   const conventions = await loadConventions();
   const system = buildSystemBlocks(corpus, conventions);
 
+  const base = await loadExistingWiki(existing);
+  if (base.note) console.warn(`Note: existing article loaded from ${base.note}`);
+
   const sources = await loadSources(options.source ?? []);
   const references = await loadSources(options.reference ?? []);
-  const userText = buildUserText(brief, sources.texts, references.texts);
+  const userText = buildReviseText(options.instruction, base.wiki, sources.texts, references.texts);
   const content = [
     { type: "text" as const, text: userText },
     ...sources.media,
@@ -63,6 +71,7 @@ export async function runDraft(brief: string | undefined, options: DraftOptions)
     console.log(`--- dry run (no API call) ---`);
     console.log(`Model: ${options.model}`);
     console.log(`System prompt: ${sysChars} chars in ${system.length} blocks (style corpus cached)`);
+    console.log(`Existing article: ${base.wiki.length} chars${base.title ? ` ("${base.title}")` : ""}`);
     console.log(
       `Sources: ${sources.texts.length} text + ${sources.media.length} media  |  ` +
         `References: ${references.texts.length} text + ${references.media.length} media`,
@@ -72,7 +81,7 @@ export async function runDraft(brief: string | undefined, options: DraftOptions)
   }
 
   const streamProgress = Boolean(options.doc || options.out);
-  console.log(`Generating draft with ${options.model}…${streamProgress ? "\n" : ""}`);
+  console.log(`Revising with ${options.model}…${streamProgress ? "\n" : ""}`);
   const wiki = await generateWikiMarkup({
     model: options.model,
     system,
@@ -84,7 +93,7 @@ export async function runDraft(brief: string | undefined, options: DraftOptions)
   await emitWiki(
     wiki,
     options,
-    "⚠️ AI-generated DRAFT — review and verify every {note}TODO before publishing. SUMO is the source of truth.",
-    "Draft SUMO article",
+    "⚠️ AI-revised DRAFT — review every change and {note}TODO before publishing. SUMO is the source of truth.",
+    base.title ?? "Revised SUMO article",
   );
 }

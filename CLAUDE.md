@@ -54,7 +54,10 @@ Note: ESM + `NodeNext` means relative imports must use `.js` extensions (e.g. `i
 - `src/sources.ts` — load/normalize `draft` sources (text + Claude-native PDF/image blocks).
 - `src/prompts.ts` — load the style corpus + build the generation system prompt.
 - `src/anthropic/draft.ts` — Claude call (Opus 4.8, adaptive thinking, streamed).
-- `src/commands/` — one file per CLI command (`fetch`, `import-source`, `to-markup`, `build-style`, `draft`).
+- `src/existing.ts` — load an existing article's WikiMarkup (`.wiki` file / Google Doc → to-markup / SUMO slug-URL → rendered text) for `revise`/`publish`.
+- `src/output.ts` — shared emit (Doc / file / stdout) + `deriveTitle`/`printReport`.
+- `src/clipboard.ts` — clipboard copy + open-in-browser for `publish`.
+- `src/commands/` — one file per CLI command (`fetch`, `import-source`, `to-markup`, `build-style`, `draft`, `revise`, `publish`).
 - `prompts/sumo-style/` — compiled SUMO style corpus (regenerate with `build-style`).
 - `samples/` — `.wiki` fixtures (incl. `real.wiki`) for testing the converters.
 
