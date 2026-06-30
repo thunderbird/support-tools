@@ -26,6 +26,8 @@ The `fetch` command creates Google Docs, which needs an OAuth credential.
 
 On first run a browser window opens for consent; the refresh token is cached in `token.json` (also gitignored). If the required scopes change (e.g. when first using `to-markup`), the tool automatically re-runs consent.
 
+> **Avoid the 7-day token expiry.** While the OAuth consent screen is in **Testing** status, Google expires refresh tokens after 7 days, so you'll be re-prompted to log in roughly weekly (the old `invalid_grant` symptom). To stop this, set the consent screen's **Publishing status** to **In production** (OAuth consent screen → *Publish app*). For an External app used only by yourself you can stay on the unverified-app warning screen — just click *Advanced → Go to … (unsafe)* once during consent. If a token does go stale, the tool now detects it, deletes `token.json`, and re-runs consent automatically.
+
 ## Usage
 
 ```bash

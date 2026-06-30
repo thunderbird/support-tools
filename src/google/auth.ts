@@ -19,16 +19,39 @@ const CREDENTIALS_PATH = path.resolve(process.cwd(), "credentials.json");
 const TOKEN_PATH = path.resolve(process.cwd(), "token.json");
 
 async function loadSavedCredentialsIfExist(): Promise<OAuth2Client | null> {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  let credentials: any;
   try {
-    const content = await fs.readFile(TOKEN_PATH, "utf-8");
-    const credentials = JSON.parse(content);
-    // Force re-consent if the cached token doesn't cover all currently-required scopes.
-    const saved: string[] = credentials.scopes ?? [];
-    if (!SCOPES.every((s) => saved.includes(s))) return null;
-    return google.auth.fromJSON(credentials) as unknown as OAuth2Client;
+    credentials = JSON.parse(await fs.readFile(TOKEN_PATH, "utf-8"));
   } catch {
+    return null; // no token file yet, or it's unreadable — fall through to consent.
+  }
+
+  // Force re-consent if the cached token doesn't cover all currently-required scopes.
+  const saved: string[] = credentials.scopes ?? [];
+  if (!SCOPES.every((s) => saved.includes(s))) return null;
+  const client = google.auth.fromJSON(credentials) as unknown as OAuth2Client;
+
+  // Proactively exchange the refresh token for an access token. A stale token
+  // (revoked, or expired after 7 days under a "Testing" consent screen) fails
+  // here with `invalid_grant`; delete it and fall through to consent so the
+  // error surfaces as a fresh login rather than mid-command. Other errors
+  // (e.g. transient network) propagate — we don't want to wipe a good token.
+  try {
+    await client.getAccessToken();
+  } catch (err) {
+    if (!isInvalidGrant(err)) throw err;
+    await fs.rm(TOKEN_PATH, { force: true });
     return null;
   }
+  return client;
+}
+
+/** Detect Google's "this refresh token can no longer be used" OAuth error. */
+function isInvalidGrant(err: unknown): boolean {
+  if (typeof err !== "object" || err === null) return false;
+  const e = err as { message?: string; response?: { data?: { error?: string } } };
+  return e.response?.data?.error === "invalid_grant" || /invalid_grant/.test(e.message ?? "");
 }
 
 async function saveCredentials(client: OAuth2Client): Promise<void> {
