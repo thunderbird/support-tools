@@ -38,6 +38,11 @@ Then: review the Doc → upload the keepers to the SUMO gallery manually → `to
 `Getting Started with Thunderbird Pro` / `Template:TBproEarlyBirdInviteOnly` renamed for Thundermail?) still
 need resolving. It also invented a 4th image slot the issue didn't ask for.
 
+### Queued (GitHub issues)
+
+- **#2 — token palette in the Doc header + lint on `to-markup`** (next session). Protection is triggered by *any* background colour (`fromDoc.isProtected` = `!!backgroundColor`); Courier New is only a visual cue. Includes the "highlighting prose for review emits it raw" trap.
+- **#3 — Docs add-on with a real markup dropdown** (nice-to-have, may never build).
+
 ### Earlier TODOs (updated 2026-06-18)
 
 **Done & committed:** Buckets 0–4 + `revise` + `publish` (Bucket 6). `draft` validated live by the owner (on-style; app-menu house rule applied). Everything else compiles and is offline-verified (dry-runs, URL construction); the items below need a live API key / browser / SUMO login, so they could not be auto-verified.
