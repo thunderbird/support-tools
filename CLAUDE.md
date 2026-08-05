@@ -52,6 +52,8 @@ Note: ESM + `NodeNext` means relative imports must use `.js` extensions (e.g. `i
 - `src/stageDoc.ts` — shared WikiMarkup → Google Doc stage (used by `import-source` and `draft`).
 - `src/html.ts` — HTML → readable text (style corpus, `.html`/web-page sources).
 - `src/sources.ts` — load/normalize `draft` sources (text + Claude-native PDF/image blocks).
+- `src/github.ts` — load GitHub issues/PRs as raw Markdown (`gh` CLI, REST fallback) instead of scraping the page (D17).
+- `src/images.ts` — embed local screenshots in the staged Doc next to their `[[Image:...]]` tokens, capped at SUMO's 620px (D19).
 - `src/prompts.ts` — load the style corpus + build the generation system prompt.
 - `src/anthropic/draft.ts` — Claude call (Opus 4.8, adaptive thinking, streamed).
 - `src/existing.ts` — load an existing article's WikiMarkup (`.wiki` file / Google Doc → to-markup / SUMO slug-URL → rendered text) for `revise`/`publish`.

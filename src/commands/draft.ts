@@ -14,6 +14,7 @@ interface DraftOptions {
   dryRun?: boolean;
   model: string;
   title?: string;
+  images?: string;
 }
 
 type Labeled = { label: string; text: string };

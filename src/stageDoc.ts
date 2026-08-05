@@ -5,6 +5,7 @@ import { wikiToHtml, type WikiConversionReport } from "./wikimarkup/toHtml.js";
 import { htmlToModel, type Block } from "./wikimarkup/docModel.js";
 import { createDocFromModel } from "./google/docsCreate.js";
 import { authorize } from "./google/auth.js";
+import { attachImages, type ImageAttachReport } from "./images.js";
 import { CONTENT_MARKER } from "./constants.js";
 
 /** Header blocks ending in the CONTENT_MARKER that `to-markup` strips. */
@@ -31,12 +32,14 @@ export interface StagedDoc {
   url: string;
   id: string;
   report: WikiConversionReport;
+  images?: ImageAttachReport;
 }
 
 export async function wikiToGoogleDoc(
   title: string,
   intro: string,
   wikiSource: string,
+  imagesDir?: string,
 ): Promise<StagedDoc> {
   const { html, report } = wikiToHtml(wikiSource);
   const importedAt = new Date().toISOString();
@@ -44,5 +47,7 @@ export async function wikiToGoogleDoc(
 
   const auth = await authorize();
   const doc = await createDocFromModel(auth, title, blocks);
-  return { url: doc.url, id: doc.id, report };
+  // Screenshots go in afterwards, against the finished doc's real indices (D19).
+  const images = imagesDir ? await attachImages(auth, doc.id, imagesDir) : undefined;
+  return { url: doc.url, id: doc.id, report, images };
 }
