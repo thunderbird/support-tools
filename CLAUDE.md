@@ -55,7 +55,7 @@ Note: ESM + `NodeNext` means relative imports must use `.js` extensions (e.g. `i
 - `src/github.ts` — load GitHub issues/PRs as raw Markdown (`gh` CLI, REST fallback) instead of scraping the page (D17).
 - `src/images.ts` — embed local screenshots in the staged Doc next to their `[[Image:...]]` tokens, capped at SUMO's 620px (D19).
 - `src/prompts.ts` — load the style corpus + build the generation system prompt.
-- `src/anthropic/draft.ts` — Claude call (Opus 4.8, adaptive thinking, streamed).
+- `src/anthropic/draft.ts` — Claude call (Opus 5, adaptive thinking, streamed).
 - `src/existing.ts` — load an existing article's WikiMarkup (`.wiki` file / Google Doc → to-markup / SUMO slug-URL → rendered text) for `revise`/`publish`.
 - `src/output.ts` — shared emit (Doc / file / stdout) + `deriveTitle`/`printReport`.
 - `src/clipboard.ts` — clipboard copy + open-in-browser for `publish`.
@@ -65,7 +65,7 @@ Note: ESM + `NodeNext` means relative imports must use `.js` extensions (e.g. `i
 
 ## Generation (Bucket 4)
 
-`draft` outputs WikiMarkup (D12) via Claude **Opus 4.8** (`claude-opus-4-8`, adaptive thinking, streamed; `@anthropic-ai/sdk`) and feeds it through the same `import-source` pipeline. On-style via the compiled SUMO style corpus (D14). Needs `ANTHROPIC_API_KEY`. Drafts are review-first: uncertainties become `{note}TODO{/note}` / `[[Image:PLACEHOLDER]]` (D15).
+`draft` outputs WikiMarkup (D12) via Claude **Opus 5** (`claude-opus-5`, adaptive thinking, streamed; `@anthropic-ai/sdk`) and feeds it through the same `import-source` pipeline. On-style via the compiled SUMO style corpus (D14). Needs `ANTHROPIC_API_KEY`. Drafts are review-first: uncertainties become `{note}TODO{/note}` / `[[Image:PLACEHOLDER]]` (D15).
 
 ## Secrets
 

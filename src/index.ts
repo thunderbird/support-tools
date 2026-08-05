@@ -8,6 +8,9 @@ import { runDraft } from "./commands/draft.js";
 import { runRevise } from "./commands/revise.js";
 import { runPublish } from "./commands/publish.js";
 
+// Default generation model. One constant so `draft` and `revise` can't drift apart.
+const DEFAULT_MODEL = "claude-opus-5";
+
 const program = new Command();
 
 program
@@ -83,7 +86,7 @@ program
   .option("-o, --out <file>", "write the WikiMarkup to a file instead of stdout")
   .option("--dry-run", "assemble the prompt and report sizes without calling Claude")
   .option("--images <dir>", "folder of local screenshots to embed in the Doc, matched to [[Image:Name]] tokens")
-  .option("-m, --model <model>", "Claude model", "claude-opus-4-8")
+  .option("-m, --model <model>", "Claude model", DEFAULT_MODEL)
   .option("-t, --title <title>", "Doc title (default: first heading)")
   .action(async (brief: string, options: DraftOptionsCli) => {
     try {
@@ -105,7 +108,7 @@ program
   .option("-o, --out <file>", "write the WikiMarkup to a file instead of stdout")
   .option("--dry-run", "assemble the prompt and report sizes without calling Claude")
   .option("--images <dir>", "folder of local screenshots to embed in the Doc, matched to [[Image:Name]] tokens")
-  .option("-m, --model <model>", "Claude model", "claude-opus-4-8")
+  .option("-m, --model <model>", "Claude model", DEFAULT_MODEL)
   .option("-t, --title <title>", "Doc title (default: existing title or first heading)")
   .action(async (existing: string, options: ReviseOptionsCli) => {
     try {

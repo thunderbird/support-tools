@@ -1,4 +1,4 @@
-// Generate SUMO WikiMarkup with Claude (Opus 4.8, adaptive thinking, streamed). D13.
+// Generate SUMO WikiMarkup with Claude (Opus 5, adaptive thinking, streamed). D13.
 
 import Anthropic from "@anthropic-ai/sdk";
 

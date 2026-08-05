@@ -2,7 +2,41 @@
 
 ADR-style log of decisions for the SUMO KB authoring tool. Newest context at the top of each section. "Confirmed" = agreed with the project owner; "Proposed" = awaiting confirmation.
 
-## ⏯️ Resume here (updated 2026-06-18)
+## ⏯️ Resume here (updated 2026-08-04)
+
+### Filelink article — issue #230 (in progress)
+
+The exact command. Paths contain a leading space in the directory name, so **keep the quotes**.
+
+```bash
+export ANTHROPIC_API_KEY=...   # required
+
+SHOTS="/Users/roland/Documents/THUNDERBIRD_2023/SUMO_KB_SCREENSHOTS/ modernize-filelink-article-for-thundmail-and-send-230"
+
+npm run dev -- revise "$SHOTS/filelink-large-attachments.wiki" \
+  -i "Apply every item in the checklist from the linked issue." \
+  -s https://github.com/thunderbird/knowledgebase-issues/issues/230 \
+  --images "$SHOTS" \
+  --doc
+```
+
+`-m` is no longer needed — `claude-opus-5` is the default (D13).
+
+**Before re-running, add a comment to issue #230 naming the replacement images**, e.g.
+`Replace [[Image:Proton-FileLink-LargeFileNotification]] with [[Image:cropped-tb153-windows-11-offer-to-use-filelink]]`,
+plus `Do not add image slots beyond these three.` Two reasons: the loader reads issue comments (D17), and
+`--images` matches files to tokens **by filename** (D19) — the `[[Image:PLACEHOLDER - …]]` tokens the last run
+produced match nothing, so name the tokens after the actual `.png` files in `$SHOTS`.
+
+Then: review the Doc → upload the keepers to the SUMO gallery manually → `to-markup <doc-url> --out x.wiki`
+→ `publish x.wiki --slug filelink-large-attachments`.
+
+**Last run (before D19 existed):** https://docs.google.com/document/d/12VkSE2RZcsDg_WPY_zKRYHhG3EFEbmTlE7O0g7ht5Fc/edit
+— all 6 checklist items applied, but 4 `[[Image:PLACEHOLDER]]` tokens and 1 `{note}TODO` (is
+`Getting Started with Thunderbird Pro` / `Template:TBproEarlyBirdInviteOnly` renamed for Thundermail?) still
+need resolving. It also invented a 4th image slot the issue didn't ask for.
+
+### Earlier TODOs (updated 2026-06-18)
 
 **Done & committed:** Buckets 0–4 + `revise` + `publish` (Bucket 6). `draft` validated live by the owner (on-style; app-menu house rule applied). Everything else compiles and is offline-verified (dry-runs, URL construction); the items below need a live API key / browser / SUMO login, so they could not be auto-verified.
 
@@ -76,7 +110,7 @@ After running, note any prompt/style tweaks (e.g. add house rules to `prompts/th
 ## Bucket 4 — Generation design (decided 2026-06-18)
 
 - **D12 — Generation outputs WikiMarkup**, fed through the existing `import-source` pipeline (→ Doc) so drafts round-trip and reuse Buckets 2–3. Claude emits SUMO WikiMarkup directly.
-- **D13 — Model: Claude Opus 4.8 (`claude-opus-4-8`)** via the official `@anthropic-ai/sdk`, `thinking: {type:"adaptive"}`, **streamed** (`.stream()`/`.finalMessage()`). Configurable via flag. Requires `ANTHROPIC_API_KEY`. Cache the (stable) style-guide system prompt so repeated drafts are cheap.
+- **D13 — Model: Claude Opus 5 (`claude-opus-5`)** — the default for `draft` and `revise`, set once as `DEFAULT_MODEL` in `index.ts` so the two commands can't drift. *(Switched from Opus 4.8 on 2026-08-04 at the owner's request; drop-in — same pricing, and the existing call already used adaptive thinking + streaming with no sampling params, so no request changes were needed.)* Previously: **Claude Opus 4.8 (`claude-opus-4-8`)** via the official `@anthropic-ai/sdk`, `thinking: {type:"adaptive"}`, **streamed** (`.stream()`/`.finalMessage()`). Configurable via flag. Requires `ANTHROPIC_API_KEY`. Cache the (stable) style-guide system prompt so repeated drafts are cheap.
 - **D14 — On-style via SUMO's OWN style articles, compiled — not hand-drafted.** Source of truth = `support.mozilla.org/en-US/kb/improve-knowledge-base` + every article it links to under `/en-US/kb/`. A `build-style` command discovers those links dynamically (fetch root → parse `/en-US/kb/` hrefs → fetch each via the existing `fetch` path → cheerio text) and compiles them into `prompts/sumo-style/` (committed, refreshable). This corpus also supplies the WikiMarkup syntax rules (it includes markup-chart, markup-cheat-sheet, how-to-use-for, using-templates). Currently 13 linked articles: anatomy-of-a-knowledge-base-article, create-new-knowledge-base-article, edit-knowledge-base-article, markup-cheat-sheet, about-knowledge-base, writing-guide-knowledge-base-articles, article-metadata, when-and-how-to-use-keywords, how-to-make-screenshots, how-place-images-article, markup-chart, how-to-use-for, using-templates. `access-mozilla-services-firefox-account` is also linked but EXCLUDED (a product article, not writing guidance) via an exclusion set in `build-style`.
 - **D15 — Accuracy guardrails:** ground claims in `--source` material; do NOT invent UI specifics; mark uncertainties as visible `{note}` TODOs and `[[Image:PLACEHOLDER]]`; human review in the Doc makes it publish-ready (matches the core decision).
 - **D17 — GitHub issues/PRs load as raw Markdown via the API, never by scraping the page.** `github.com/<owner>/<repo>/(issues|pull)/<n>` gets its own branch in `sources.ts` (ahead of the generic web-page branch) backed by `src/github.ts`. Auth order: the **`gh` CLI** first (`gh issue view --json title,body,comments`) because it reuses the owner's existing login and so covers private repos with no token plumbing; falls back to the REST API (`GITHUB_TOKEN`/`GH_TOKEN` if set, else unauthenticated — fine for public repos). Comments are included and attributed. Rationale, measured on `thunderbird/knowledgebase-issues#230`: the Playwright page scrape produced **12,101 chars, ~85% of it GitHub navigation chrome**, and flattened the markdown that carries the meaning — task checkboxes, fenced ```` ```wiki ```` blocks, and inline `` `{button}` ``/`` `{menu}` `` code spans. The API path produces **1,814 chars of pure signal**. The scrape also silently *lost a checklist item* (the `Thunderbird app menu {menu ☰} > {menu Settings}` rewording), which the API path applied. Not solved: issue bodies embed screenshots as `<img src="…user-attachments/assets/…">`; those URLs pass through as literal HTML and are **not** fetched, so image content still has to be supplied as a local `--source` file. *(Confirmed 2026-08-04; verified live against issue #230.)*
