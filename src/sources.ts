@@ -7,6 +7,7 @@ import type Anthropic from "@anthropic-ai/sdk";
 import { fetchArticle } from "./sumo.js";
 import { fetchPageHtml } from "./browser.js";
 import { htmlToText } from "./html.js";
+import { GITHUB_ISSUE, fetchIssueMarkdown } from "./github.js";
 
 export interface LoadedSources {
   texts: { label: string; text: string }[];
@@ -27,9 +28,14 @@ async function loadOne(ref: string, out: LoadedSources): Promise<void> {
   // Remote sources
   if (/^https?:\/\//i.test(ref)) {
     const sumo = SUMO_KB.exec(ref);
+    const gh = GITHUB_ISSUE.exec(ref);
     if (sumo) {
       const art = await fetchArticle(sumo[1]);
       out.texts.push({ label: `SUMO article: ${art.title} (rendered)`, text: htmlToText(art.html) });
+    } else if (gh) {
+      // Raw Markdown via the API — scraping the page would bury the checklist in
+      // navigation chrome and mangle the task boxes and fenced blocks.
+      out.texts.push(await fetchIssueMarkdown(gh[1], gh[2], gh[3]));
     } else {
       out.texts.push({ label: `Web page: ${ref}`, text: htmlToText(await fetchPageHtml(ref)) });
     }
