@@ -8,6 +8,9 @@ import { runDraft } from "./commands/draft.js";
 import { runRevise } from "./commands/revise.js";
 import { runPublish } from "./commands/publish.js";
 
+// Default generation model. One constant so `draft` and `revise` can't drift apart.
+const DEFAULT_MODEL = "claude-opus-5";
+
 const program = new Command();
 
 program
@@ -34,8 +37,9 @@ program
   .description("Convert WikiMarkup source (file or stdin) into an editable Google Doc")
   .argument("[file]", "path to a .wiki file; omit to read from stdin")
   .option("-t, --title <title>", "Doc title (default: first heading in the source)")
+  .option("--images <dir>", "folder of local screenshots to embed in the Doc, matched to [[Image:Name]] tokens")
   .option("--html", "print the converted HTML and skip Google Doc creation")
-  .action(async (file: string | undefined, options: { title?: string; html?: boolean }) => {
+  .action(async (file: string | undefined, options: { title?: string; html?: boolean; images?: string }) => {
     try {
       await runImportSource(file, options);
     } catch (err) {
@@ -81,7 +85,8 @@ program
   .option("--doc", "stage the result as a Google Doc")
   .option("-o, --out <file>", "write the WikiMarkup to a file instead of stdout")
   .option("--dry-run", "assemble the prompt and report sizes without calling Claude")
-  .option("-m, --model <model>", "Claude model", "claude-opus-4-8")
+  .option("--images <dir>", "folder of local screenshots to embed in the Doc, matched to [[Image:Name]] tokens")
+  .option("-m, --model <model>", "Claude model", DEFAULT_MODEL)
   .option("-t, --title <title>", "Doc title (default: first heading)")
   .action(async (brief: string, options: DraftOptionsCli) => {
     try {
@@ -102,7 +107,8 @@ program
   .option("--doc", "stage the result as a Google Doc")
   .option("-o, --out <file>", "write the WikiMarkup to a file instead of stdout")
   .option("--dry-run", "assemble the prompt and report sizes without calling Claude")
-  .option("-m, --model <model>", "Claude model", "claude-opus-4-8")
+  .option("--images <dir>", "folder of local screenshots to embed in the Doc, matched to [[Image:Name]] tokens")
+  .option("-m, --model <model>", "Claude model", DEFAULT_MODEL)
   .option("-t, --title <title>", "Doc title (default: existing title or first heading)")
   .action(async (existing: string, options: ReviseOptionsCli) => {
     try {

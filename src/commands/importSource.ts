@@ -5,11 +5,12 @@
 import { promises as fs } from "node:fs";
 import { wikiToHtml } from "../wikimarkup/toHtml.js";
 import { wikiToGoogleDoc } from "../stageDoc.js";
-import { deriveTitle, printReport } from "../output.js";
+import { deriveTitle, printReport, printImageReport } from "../output.js";
 
 interface ImportOptions {
   title?: string;
   html?: boolean; // print HTML and skip Google Doc creation (for testing without creds)
+  images?: string; // folder of local screenshots to embed next to [[Image:...]] tokens
 }
 
 async function readStdin(): Promise<string> {
@@ -34,12 +35,14 @@ export async function runImportSource(file: string | undefined, options: ImportO
   }
 
   console.log(`Authorizing with Google and creating Doc "${title}"…`);
-  const { url, report } = await wikiToGoogleDoc(
+  const { url, report, images } = await wikiToGoogleDoc(
     title,
     "⚠️ Draft staged from WikiMarkup — SUMO is the source of truth, not this Doc.",
     source,
+    options.images,
   );
 
   console.log(`\n✅ Created Google Doc:\n   ${url}`);
+  if (images) printImageReport(images);
   printReport(report);
 }

@@ -57,7 +57,8 @@ export function buildRequests(blocks: Block[]): docs_v1.Schema$Request[] {
   const paragraphStyleReqs: docs_v1.Schema$Request[] = [];
   const listItems: { start: number; end: number; ordered: boolean }[] = [];
 
-  for (const block of blocks) {
+  for (let i = 0; i < blocks.length; i++) {
+    const block = blocks[i];
     if (block.type === "hr") {
       // No native HR via batchUpdate; "----" is valid wiki and round-trips cleanly.
       text += "----\n";
@@ -102,6 +103,17 @@ export function buildRequests(blocks: Block[]): docs_v1.Schema$Request[] {
       });
     } else if (block.type === "listItem") {
       listItems.push({ start: paraStart, end: paraEnd, ordered: block.ordered });
+    }
+
+    // Separate consecutive prose paragraphs with an empty paragraph. A <p> boundary
+    // always means the wiki source had a blank line there (toHtml joins single
+    // newlines into one <p> — O5), but Docs renders adjacent paragraphs with no gap.
+    // Only paragraph→paragraph: headings carry their own spaceAbove, and a list that
+    // follows its intro line has no blank line in the source. fromDoc collapses the
+    // empty paragraph, so the round-trip is unchanged.
+    if (block.type === "paragraph" && blocks[i + 1]?.type === "paragraph") {
+      text += "\n";
+      index += 1;
     }
   }
 
