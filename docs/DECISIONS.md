@@ -11,7 +11,9 @@ The exact command. Paths contain a leading space in the directory name, so **kee
 ```bash
 export ANTHROPIC_API_KEY=...   # required
 
-SHOTS="/Users/roland/Documents/THUNDERBIRD_2023/SUMO_KB_SCREENSHOTS/ modernize-filelink-article-for-thundmail-and-send-230"
+# Local folder holding the article's .wiki plus its screenshots. Note the LEADING SPACE
+# in the directory name — keep the quotes or the argument splits.
+SHOTS="<your-screenshots-dir>/ modernize-filelink-article-for-thundmail-and-send-230"
 
 npm run dev -- revise "$SHOTS/filelink-large-attachments.wiki" \
   -i "Apply every item in the checklist from the linked issue." \
