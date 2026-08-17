@@ -26,6 +26,17 @@ interface ProtectedItem {
   raw: string;
 }
 
+// A source line consisting only of protected tokens (`__TOC__`, `[[UI:details_start]]`,
+// `{for win}`, a lone `[[Image:...]]`, a verbatim <code> block, …) is structural, not prose.
+const TOKEN_LINE = new RegExp(`^(?:${PH_OPEN}\\d+${PH_CLOSE}\\s*)+$`);
+
+/**
+ * Marks a <p> that had NO blank line before it in the source, so the Doc builder knows
+ * not to open a gap there (D20). Only reachable after a token line, heading, list or
+ * rule — two consecutive prose lines are joined into a single <p> (O5).
+ */
+export const TIGHT_CLASS = "wiki-tight";
+
 // Atomic / irreversible constructs, preserved verbatim. ORDER MATTERS: Image and
 // Template must be matched before the generic internal-link pattern.
 const INLINE_PROTECTED: { kind: string; re: RegExp }[] = [
@@ -119,12 +130,16 @@ function parseBlocks(text: string): string {
   const out: string[] = [];
   let para: string[] = [];
   let i = 0;
+  let prevBlank = true; // was the previous source line blank (or start of document)?
+  let paraTight = false; // did the paragraph being built start without a blank line above?
+
+  const tightAttr = (tight: boolean) => (tight ? ` class="${TIGHT_CLASS}"` : "");
 
   const flushPara = () => {
     if (para.length) {
       // Kitsune joins a single newline into flowing text, so join lines with a space
       // (a hard break needs an explicit <br> in the source). See docs/DECISIONS.md O5.
-      out.push(`<p>${para.map(inline).join(" ")}</p>`);
+      out.push(`<p${tightAttr(paraTight)}>${para.map(inline).join(" ")}</p>`);
       para = [];
     }
   };
@@ -134,6 +149,7 @@ function parseBlocks(text: string): string {
 
     if (trimmed === "") {
       flushPara();
+      prevBlank = true;
       i++;
       continue;
     }
@@ -142,6 +158,7 @@ function parseBlocks(text: string): string {
     if (h) {
       flushPara();
       out.push(`<h${h[1].length}>${inline(h[2])}</h${h[1].length}>`);
+      prevBlank = false;
       i++;
       continue;
     }
@@ -149,6 +166,7 @@ function parseBlocks(text: string): string {
     if (/^----+$/.test(trimmed)) {
       flushPara();
       out.push("<hr>");
+      prevBlank = false;
       i++;
       continue;
     }
@@ -161,10 +179,24 @@ function parseBlocks(text: string): string {
         i++;
       }
       out.push(buildList(run));
+      prevBlank = false;
       continue;
     }
 
+    // Kitsune would flow a token-only line into the surrounding prose (O5), but in the
+    // Doc that hides the article's structure — the reviewer sees `…{/note} __TOC__
+    // [[UI:details_start]]` trailing a sentence. Give it its own paragraph instead (D20).
+    if (TOKEN_LINE.test(trimmed)) {
+      flushPara();
+      out.push(`<p${tightAttr(!prevBlank)}>${inline(trimmed)}</p>`);
+      prevBlank = false;
+      i++;
+      continue;
+    }
+
+    if (!para.length) paraTight = !prevBlank;
     para.push(trimmed);
+    prevBlank = false;
     i++;
   }
   flushPara();
@@ -187,6 +219,13 @@ export function wikiToHtml(source: string): WikiConversionResult {
 
   // 1) Protect whole wiki tables verbatim ({| ... |}).
   text = text.replace(/^\{\|[\s\S]*?^\|\}/gm, (m) => store("table", m));
+
+  // 1a) A <code> block spanning several lines is PREFORMATTED on SUMO — Kitsune keeps
+  //     its newlines and indentation (verified against a live article). Flowing it into
+  //     one line (O5) would destroy the code, so protect the whole block verbatim; each
+  //     of its lines becomes its own Doc paragraph and comes back unchanged. Single-line
+  //     <code> stays real monospace formatting.
+  text = text.replace(/<code>[^\n]*\n[\s\S]*?<\/code>/gi, (m) => store("code-block", m));
 
   // 1b) Protect leading definition-list / indent markers (`;`/`:` at line start),
   //     verbatim — they carry no reversible visual equivalent (D9).

@@ -4,6 +4,7 @@
 // which Drive's HTML import cannot (see docs/DECISIONS.md D11).
 
 import * as cheerio from "cheerio";
+import { TIGHT_CLASS } from "./toHtml.js";
 
 export interface Run {
   text: string;
@@ -17,7 +18,8 @@ export interface Run {
 
 export type Block =
   | { type: "heading"; level: number; runs: Run[] }
-  | { type: "paragraph"; runs: Run[] }
+  // tight: no blank line before this paragraph in the source → no spacer in the Doc.
+  | { type: "paragraph"; runs: Run[]; tight?: boolean }
   | { type: "listItem"; ordered: boolean; level: number; runs: Run[] }
   | { type: "hr" };
 
@@ -105,7 +107,8 @@ export function htmlToModel(html: string): Block[] {
       if (/^h[1-6]$/.test(tag)) {
         blocks.push({ type: "heading", level: Number(tag[1]), runs: inlineRuns(api, el) });
       } else if (tag === "p") {
-        blocks.push({ type: "paragraph", runs: inlineRuns(api, el) });
+        const tight = (api(el).attr("class") ?? "") === TIGHT_CLASS;
+        blocks.push({ type: "paragraph", runs: inlineRuns(api, el), ...(tight && { tight }) });
       } else if (tag === "hr") {
         blocks.push({ type: "hr" });
       } else if (tag === "ul" || tag === "ol") {

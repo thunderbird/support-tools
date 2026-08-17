@@ -59,6 +59,22 @@ function paragraphText(p: docs_v1.Schema$Paragraph): string {
   return (p.elements ?? []).map(renderRun).join("");
 }
 
+/**
+ * A paragraph holding nothing but protected tokens — a structural line (`__TOC__`,
+ * `[[UI:details_start]]`, `{for win}`) or one line of a verbatim block such as a
+ * multi-line <code> block. The source had no blank line around it, so neither should
+ * the output: these stay glued to the line above (D20).
+ */
+function isTokenOnly(p: docs_v1.Schema$Paragraph): boolean {
+  let sawToken = false;
+  for (const el of p.elements ?? []) {
+    if (cleanContent(el.textRun?.content ?? "") === "") continue;
+    if (!isProtected(el.textRun?.textStyle ?? undefined)) return false;
+    sawToken = true;
+  }
+  return sawToken;
+}
+
 function rawParagraphText(p: docs_v1.Schema$Paragraph): string {
   return (p.elements ?? []).map((e) => e.textRun?.content ?? "").join("");
 }
@@ -103,11 +119,15 @@ export function docToWikiMarkup(doc: docs_v1.Schema$Document): DocConversionResu
 
   const lines: string[] = [];
   let inList = false;
+  // Did we add the last blank line ourselves as a paragraph separator? (As opposed to it
+  // coming from a real empty paragraph in the Doc, which stands for a source blank line.)
+  let autoBlank = false;
 
   const endList = () => {
     if (inList) {
       lines.push("");
       inList = false;
+      autoBlank = false;
     }
   };
 
@@ -129,15 +149,25 @@ export function docToWikiMarkup(doc: docs_v1.Schema$Document): DocConversionResu
     }
     endList();
 
+    if (isTokenOnly(p)) {
+      if (autoBlank && lines[lines.length - 1] === "") lines.pop();
+      lines.push(text.trimEnd()); // leading indentation is significant inside <code>
+      autoBlank = false;
+      continue;
+    }
+
     const named = p.paragraphStyle?.namedStyleType ?? "NORMAL_TEXT";
     const heading = /^HEADING_([1-6])$/.exec(named);
     if (heading) {
       const eq = "=".repeat(Number(heading[1]));
       lines.push(`${eq} ${text.trim()} ${eq}`, "");
+      autoBlank = true;
     } else if (text.trim() !== "") {
       lines.push(text.trimEnd(), "");
+      autoBlank = true;
     } else if (lines.length && lines[lines.length - 1] !== "") {
       lines.push("");
+      autoBlank = false; // a real empty paragraph = a blank line the source had
     }
   }
 

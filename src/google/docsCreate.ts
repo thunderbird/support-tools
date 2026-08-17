@@ -105,13 +105,15 @@ export function buildRequests(blocks: Block[]): docs_v1.Schema$Request[] {
       listItems.push({ start: paraStart, end: paraEnd, ordered: block.ordered });
     }
 
-    // Separate consecutive prose paragraphs with an empty paragraph. A <p> boundary
-    // always means the wiki source had a blank line there (toHtml joins single
-    // newlines into one <p> — O5), but Docs renders adjacent paragraphs with no gap.
-    // Only paragraph→paragraph: headings carry their own spaceAbove, and a list that
-    // follows its intro line has no blank line in the source. fromDoc collapses the
-    // empty paragraph, so the round-trip is unchanged.
-    if (block.type === "paragraph" && blocks[i + 1]?.type === "paragraph") {
+    // Separate consecutive prose paragraphs with an empty paragraph: a <p> boundary
+    // usually means the wiki source had a blank line there (toHtml joins single newlines
+    // into one <p> — O5), but Docs renders adjacent paragraphs with no gap. Only
+    // paragraph→paragraph: headings carry their own spaceAbove, and a list that follows
+    // its intro line has no blank line in the source. fromDoc collapses the empty
+    // paragraph, so the round-trip is unchanged. Skipped when the NEXT paragraph is
+    // tight — that one had no blank line above it in the source (D20).
+    const next = blocks[i + 1];
+    if (block.type === "paragraph" && next?.type === "paragraph" && !next.tight) {
       text += "\n";
       index += 1;
     }
