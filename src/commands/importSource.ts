@@ -5,12 +5,15 @@
 import { promises as fs } from "node:fs";
 import { wikiToHtml } from "../wikimarkup/toHtml.js";
 import { wikiToGoogleDoc } from "../stageDoc.js";
+import { parseDocId } from "./toMarkup.js";
 import { deriveTitle, printReport, printImageReport, printMixedListNotes } from "../output.js";
 
 interface ImportOptions {
   title?: string;
   html?: boolean; // print HTML and skip Google Doc creation (for testing without creds)
   images?: string; // folder of local screenshots to embed next to [[Image:...]] tokens
+  replace?: string; // rewrite this existing Doc instead of creating a new one
+  header?: boolean; // commander sets false for --no-header
 }
 
 async function readStdin(): Promise<string> {
@@ -34,15 +37,20 @@ export async function runImportSource(file: string | undefined, options: ImportO
     return;
   }
 
-  console.log(`Authorizing with Google and creating Doc "${title}"…`);
+  const replaceDocId = options.replace ? parseDocId(options.replace) : undefined;
+  console.log(
+    replaceDocId
+      ? `Authorizing with Google and rewriting Doc ${replaceDocId}…`
+      : `Authorizing with Google and creating Doc "${title}"…`,
+  );
   const { url, report, images, mixedListNotes } = await wikiToGoogleDoc(
     title,
     "⚠️ Draft staged from WikiMarkup — SUMO is the source of truth, not this Doc.",
     source,
-    options.images,
+    { imagesDir: options.images, replaceDocId, header: options.header },
   );
 
-  console.log(`\n✅ Created Google Doc:\n   ${url}`);
+  console.log(`\n✅ ${replaceDocId ? "Rewrote" : "Created"} Google Doc:\n   ${url}`);
   if (images) printImageReport(images);
   printMixedListNotes(mixedListNotes);
   printReport(report);

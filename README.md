@@ -42,6 +42,10 @@ npm run dev -- import-source article.wiki
 cat article.wiki | npm run dev -- import-source        # or via stdin
 pbpaste | npm run dev -- import-source --title "Custom OAuth for Thunderbird"
 npm run dev -- import-source article.wiki --html       # print HTML, skip Doc (no Google needed)
+
+# Rewrite an existing Doc in place, keeping its URL and sharing (old content stays in
+# the Doc's version history). --no-header omits the "staged draft" banner + marker.
+npm run dev -- import-source article.wiki --replace <docId-or-url> --no-header
 ```
 
 `-t, --title` names the Doc. Without it the title comes from the first heading in the

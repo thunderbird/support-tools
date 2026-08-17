@@ -38,8 +38,10 @@ program
   .argument("[file]", "path to a .wiki file; omit to read from stdin")
   .option("-t, --title <title>", "Doc title (default: first heading in the source)")
   .option("--images <dir>", "folder of local screenshots to embed in the Doc, matched to [[Image:Name]] tokens")
+  .option("--replace <doc>", "rewrite this existing Doc (id or URL) instead of creating a new one")
+  .option("--no-header", "skip the staged-draft header (for reference Docs like the cheat sheet)")
   .option("--html", "print the converted HTML and skip Google Doc creation")
-  .action(async (file: string | undefined, options: { title?: string; html?: boolean; images?: string }) => {
+  .action(async (file: string | undefined, options: ImportOptionsCli) => {
     try {
       await runImportSource(file, options);
     } catch (err) {
@@ -138,6 +140,14 @@ program
   });
 
 program.parseAsync();
+
+interface ImportOptionsCli {
+  title?: string;
+  html?: boolean;
+  images?: string;
+  replace?: string;
+  header?: boolean;
+}
 
 interface DraftOptionsCli {
   source?: string[];

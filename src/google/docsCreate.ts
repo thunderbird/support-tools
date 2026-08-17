@@ -171,6 +171,10 @@ export interface CreatedDoc {
   url: string;
 }
 
+function docUrl(id: string): string {
+  return `https://docs.google.com/document/d/${id}/edit`;
+}
+
 /** Create a new Doc and populate it from the block model. */
 export async function createDocFromModel(
   auth: OAuth2Client,
@@ -187,5 +191,64 @@ export async function createDocFromModel(
     requestBody: { requests: buildRequests(blocks) },
   });
 
-  return { id: documentId, url: `https://docs.google.com/document/d/${documentId}/edit` };
+  return { id: documentId, url: docUrl(documentId) };
+}
+
+/**
+ * Rewrite an existing Doc's body from the block model, keeping its id, URL and
+ * sharing (for reference Docs whose link is published, e.g. the token cheat sheet).
+ * The previous content stays recoverable in the Doc's version history.
+ */
+export async function replaceDocFromModel(
+  auth: OAuth2Client,
+  documentId: string,
+  blocks: Block[],
+  title?: string,
+): Promise<CreatedDoc> {
+  const docs = google.docs({ version: "v1", auth });
+  const existing = await docs.documents.get({ documentId });
+  const content = existing.data.body?.content ?? [];
+  const bodyEnd = content[content.length - 1]?.endIndex ?? 2;
+
+  // A Doc always keeps one final empty paragraph, so the deletable range stops one
+  // short of the body end. That survivor's styling has to be reset as well: text
+  // inserted at index 1 inherits whatever the paragraph there carries (a heading
+  // style, a bullet, a highlight), and buildRequests only ever *sets* styles.
+  const wipe: docs_v1.Schema$Request[] = [];
+  if (bodyEnd - 1 > 1) {
+    wipe.push({ deleteContentRange: { range: { startIndex: 1, endIndex: bodyEnd - 1 } } });
+  }
+  const survivor = { startIndex: 1, endIndex: 2 };
+  wipe.push(
+    { deleteParagraphBullets: { range: survivor } },
+    {
+      updateParagraphStyle: {
+        range: survivor,
+        paragraphStyle: { namedStyleType: "NORMAL_TEXT" },
+        fields: "namedStyleType",
+      },
+    },
+    {
+      updateTextStyle: {
+        range: survivor,
+        textStyle: {},
+        fields: "bold,italic,underline,strikethrough,backgroundColor,weightedFontFamily,link",
+      },
+    },
+  );
+  await docs.documents.batchUpdate({ documentId, requestBody: { requests: wipe } });
+  await docs.documents.batchUpdate({
+    documentId,
+    requestBody: { requests: buildRequests(blocks) },
+  });
+
+  if (title && title !== existing.data.title) {
+    // The Docs API can't rename a Doc; Drive can (drive.file covers app-created files).
+    await google.drive({ version: "v3", auth }).files.update({
+      fileId: documentId,
+      requestBody: { name: title },
+    });
+  }
+
+  return { id: documentId, url: docUrl(documentId) };
 }

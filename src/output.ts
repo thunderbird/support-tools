@@ -61,12 +61,9 @@ export async function emitWiki(
 
   if (opts.doc) {
     const title = opts.title ?? deriveTitle(wiki, defaultTitle);
-    const { url, images, mixedListNotes } = await wikiToGoogleDoc(
-      title,
-      docIntro,
-      wiki,
-      opts.images,
-    );
+    const { url, images, mixedListNotes } = await wikiToGoogleDoc(title, docIntro, wiki, {
+      imagesDir: opts.images,
+    });
     console.log(`\n✅ Created Google Doc:\n   ${url}`);
     if (images) printImageReport(images);
     printMixedListNotes(mixedListNotes);

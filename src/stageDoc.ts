@@ -4,7 +4,7 @@
 import { wikiToHtml, type WikiConversionReport } from "./wikimarkup/toHtml.js";
 import { htmlToModel, type Block } from "./wikimarkup/docModel.js";
 import { noteMixedListMarkers } from "./wikimarkup/mixedLists.js";
-import { createDocFromModel } from "./google/docsCreate.js";
+import { createDocFromModel, replaceDocFromModel } from "./google/docsCreate.js";
 import { authorize } from "./google/auth.js";
 import { attachImages, type ImageAttachReport } from "./images.js";
 import { CONTENT_MARKER } from "./constants.js";
@@ -38,20 +38,31 @@ export interface StagedDoc {
   mixedListNotes: number;
 }
 
+export interface StageOptions {
+  /** Folder of local screenshots to embed next to `[[Image:...]]` tokens. */
+  imagesDir?: string;
+  /** Rewrite this existing Doc instead of creating one (keeps its URL + sharing). */
+  replaceDocId?: string;
+  /** Prepend the staged-draft header + CONTENT_MARKER. Off for reference Docs. */
+  header?: boolean;
+}
+
 export async function wikiToGoogleDoc(
   title: string,
   intro: string,
   wikiSource: string,
-  imagesDir?: string,
+  { imagesDir, replaceDocId, header = true }: StageOptions = {},
 ): Promise<StagedDoc> {
   const { html, report } = wikiToHtml(wikiSource);
   const importedAt = new Date().toISOString();
   // Only on the Doc path: `--out`/stdout keep the real `#*` markers, so no reminder is due.
   const { blocks: body, notes } = noteMixedListMarkers(htmlToModel(html));
-  const blocks = [...headerBlocks(intro, importedAt), ...body];
+  const blocks = header ? [...headerBlocks(intro, importedAt), ...body] : body;
 
   const auth = await authorize();
-  const doc = await createDocFromModel(auth, title, blocks);
+  const doc = replaceDocId
+    ? await replaceDocFromModel(auth, replaceDocId, blocks, title)
+    : await createDocFromModel(auth, title, blocks);
   // Screenshots go in afterwards, against the finished doc's real indices (D19).
   const images = imagesDir ? await attachImages(auth, doc.id, imagesDir) : undefined;
   return { url: doc.url, id: doc.id, report, images, mixedListNotes: notes };
