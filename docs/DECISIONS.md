@@ -2,7 +2,12 @@
 
 ADR-style log of decisions for the SUMO KB authoring tool. Newest context at the top of each section. "Confirmed" = agreed with the project owner; "Proposed" = awaiting confirmation.
 
-## ⏯️ Resume here (updated 2026-08-04)
+## ⏯️ Resume here (updated 2026-08-17)
+
+### Waiting on the owner (2026-08-17)
+
+- **Token cheat sheet — two clicks, once.** The Doc now leads with the pasteable tokens and keeps the explanation in one trailing `Fine print` section (D24), but the Docs API cannot set pageless mode or collapse a heading. In <https://docs.google.com/document/d/1cZLEQwU-4WXeWSSOspTJWD9EgxZAE4hPpJHzCQ9ciOk/edit>: *File → Page setup → Pageless*, then click the triangle next to **Fine print**. Do it as an **editor** — a viewer's collapse is not saved, an editor's is, so that is what makes "collapsed" the default for contributors. Regenerate the Doc in place from now on (`--replace`, see the recipe in `docs/protected-tokens.md`); never mint a new one, the URL is published.
+- **Custom OAuth article — in review** at <https://docs.google.com/document/d/1BAmyh6bmMPqg2GFvFHQG5I_8aMhN_K6o829lpgMd4Q0/edit>. Before pasting to SUMO, change the two `##` sub-steps under the Exchange list back to `#*` and delete the tool's TODO comment (D23/O6). Note `samples/custom-oauth-configuration.wiki` lags the source pasted on 2026-08-17 (missing the `oauthProvider API` link and the bolded `'''NOTE'''`), so re-staging from the fixture loses those edits.
 
 ### Filelink article — issue #230 (in progress)
 
