@@ -85,13 +85,19 @@ function listPrefix(
 ): string {
   const level = p.bullet?.nestingLevel ?? 0;
   const listId = p.bullet?.listId ?? "";
-  const nl = lists[listId]?.listProperties?.nestingLevels?.[level];
+  const levels = lists[listId]?.listProperties?.nestingLevels ?? [];
+
   // A glyphSymbol means a bullet; ordered lists carry a numeric glyphType or a
   // format like "%0." Some importers set one but not the other, so check both.
-  const ordered =
+  const isOrdered = (nl: docs_v1.Schema$NestingLevel | undefined): boolean =>
     !nl?.glyphSymbol &&
     (/DECIMAL|ALPHA|ROMAN/i.test(nl?.glyphType ?? "") || /%/.test(nl?.glyphFormat ?? ""));
-  return (ordered ? "#" : "*").repeat(level + 1);
+
+  // One marker per level, read from that level's own glyph — wiki writes the whole
+  // ancestry (`#*` = bullet inside a numbered step), and a Doc's levels can differ.
+  let prefix = "";
+  for (let l = 0; l <= level; l++) prefix += isOrdered(levels[l]) ? "#" : "*";
+  return prefix;
 }
 
 export function docToWikiMarkup(doc: docs_v1.Schema$Document): DocConversionResult {

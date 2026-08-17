@@ -55,7 +55,7 @@ export function buildRequests(blocks: Block[]): docs_v1.Schema$Request[] {
   let index = 1; // Docs body content starts at index 1.
   const textStyleReqs: docs_v1.Schema$Request[] = [];
   const paragraphStyleReqs: docs_v1.Schema$Request[] = [];
-  const listItems: { start: number; end: number; ordered: boolean }[] = [];
+  const listItems: { start: number; end: number; ordered: boolean; level: number }[] = [];
 
   for (let i = 0; i < blocks.length; i++) {
     const block = blocks[i];
@@ -102,7 +102,12 @@ export function buildRequests(blocks: Block[]): docs_v1.Schema$Request[] {
         },
       });
     } else if (block.type === "listItem") {
-      listItems.push({ start: paraStart, end: paraEnd, ordered: block.ordered });
+      listItems.push({
+        start: paraStart,
+        end: paraEnd,
+        ordered: block.ordered,
+        level: block.level,
+      });
     }
 
     // Separate consecutive prose paragraphs with an empty paragraph: a <p> boundary
@@ -119,11 +124,19 @@ export function buildRequests(blocks: Block[]): docs_v1.Schema$Request[] {
     }
   }
 
-  // Group contiguous list items of the same ordered-type into bullet ranges.
+  // Group contiguous list items into bullet ranges — ONE range per list, so nesting is
+  // read relative to the whole list and the numbering runs unbroken (O6). Split only when
+  // the OUTERMOST level changes type (`#` run → `*` run = two different lists); a nested
+  // item of the other type (`#` with `#*` children) stays in its parent's range, because
+  // one `createParagraphBullets` preset covers every level and Docs has no mixed
+  // numbered/bulleted preset — re-presetting a sub-range rewrites the whole list's glyphs
+  // (verified live). So a nested bullet under a numbered step shows that preset's level-2
+  // glyph; structure and numbering survive, the sub-marker type does not.
   const groups: { start: number; end: number; ordered: boolean }[] = [];
   for (const item of listItems) {
     const last = groups[groups.length - 1];
-    if (last && last.ordered === item.ordered && last.end === item.start) {
+    const contiguous = last && last.end === item.start;
+    if (contiguous && (item.level > 1 || last.ordered === item.ordered)) {
       last.end = item.end;
     } else {
       groups.push({ ...item });

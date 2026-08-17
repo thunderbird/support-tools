@@ -227,6 +227,11 @@ export function wikiToHtml(source: string): WikiConversionResult {
   //     <code> stays real monospace formatting.
   text = text.replace(/<code>[^\n]*\n[\s\S]*?<\/code>/gi, (m) => store("code-block", m));
 
+  // 1b) HTML comments are editorial notes, not prose — protect them verbatim (newlines
+  //     and all) so a comment on its own line stays on its own line in the Doc (D20)
+  //     instead of being flowed onto the end of the paragraph above it.
+  text = text.replace(/<!--[\s\S]*?-->/g, (m) => store("comment", m));
+
   // 1b) Protect leading definition-list / indent markers (`;`/`:` at line start),
   //     verbatim — they carry no reversible visual equivalent (D9).
   text = text.replace(/^[;:]+/gm, (m) => store("indent", m));
