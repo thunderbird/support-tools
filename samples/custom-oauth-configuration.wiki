@@ -1,0 +1,151 @@
+This article covers custom OAuth configuration for Thunderbird. See [[OAuth2 for Thunderbird]] for an overview.
+
+{note}NOTE: For most Thunderbird users, Thunderbird's built-in OAuth2 support for many common providers (like Google, Microsoft, Yahoo and AOL) is sufficient. If you don't need to customize your OAuth configuration, please ignore this article.{/note}
+__TOC__
+[[UI:details_start]]
+==OAuth2 provider add-ons (recommended for administrators and organizations)==
+Who is this for?
+* Organizations
+* Universities
+* IT administrators
+* Third-party provider developers
+Thunderbird provides a WebExtension API that allows add-ons to register OAuth2 providers.
+https://webextension-api.thunderbird.net/en/mv3/oauthProvider.html
+An add-on can provide OAuth2 configuration including:
+*Client ID
+*Authorization endpoint
+*Token endpoint
+*Scopes
+*PKCE settings
+*Browser flow settings
+This allows organizations to package their OAuth2 configuration once and deploy it to many users.
+The API now supports two deployment models:
+#Registering OAuth2 providers for new mail services that Thunderbird doesn't already know about.
+#Overriding Thunderbird's built-in OAuth2 configuration for selected email domains or entire hostnames. This allows an organization to replace Thunderbird's built-in configuration only where required, while continuing to use the built-in provider for everyone else.
+For example, an organization using Microsoft 365 with its own Azure application registration can transparently replace Thunderbird's built-in Microsoft OAuth2 configuration for users in its own email domain, while all other Microsoft 365 users continue using Thunderbird's built-in configuration.
+
+Thunderbird also displays when OAuth2 settings are being provided by an extension, including the name of the extension, so users can easily identify where their configuration is coming from.
+===Administrator workflow===
+Organizations that wish to deploy a common OAuth2 configuration to many users can package it as a Thunderbird WebExtension.
+====1. Create the extension manifest====
+Create a '''manifest.json''' containing the OAuth provider registration and any required OAuth2 settings (client ID, authorization endpoint, token endpoint, scopes, PKCE settings, browser flow settings, hostname registrations, email domain overrides, etc.).
+[[UI:details_start]]
+====Example manifest.json====
+<code>
+{
+  "manifest_version": 2,
+  "name": "Example Microsoft 365 OAuth Provider",
+  "version": "1.0",
+  "applications": {
+    "gecko": {
+      "id": "oauth-provider@example.org",
+      "strict_min_version": "155.0"
+    }
+  },
+  "oauth_provider": {
+    "issuer": "this.must.be.unique",
+    "clientId": "your-client-id-here-0000-000000000000",
+    "clientSecret": "",
+    "issuerIdentifier": "https://login.microsoftonline.com/your-tenant-id-0000-0000-000000000000/v2.0",
+    "authorizationEndpoint": "https://login.microsoftonline.com/your-tenant-id-0000-0000-000000000000/oauth2/v2.0/authorize",
+    "tokenEndpoint": "https://login.microsoftonline.com/your-tenant-id-0000-0000-000000000000/oauth2/v2.0/token",
+    "redirectionEndpoint": "https://localhost",
+    "usePKCE": true,
+    "useExternalBrowser": true,
+    "hostnames": [
+      "office365.com",
+      "outlook.com"
+    ],
+    "emailDomains": [
+      "example.com"
+    ],
+    "scopes": "https://outlook.office.com/IMAP.AccessAsUser.All https://outlook.office.com/POP.AccessAsUser.All https://outlook.office.com/SMTP.Send https://outlook.office.com/EWS.AccessAsUser.All offline_access"
+  }
+}
+</code>
+[[UI:details_end]]
+====2. Package the extension into a standard Thunderbird extension (.xpi) file.====
+* Simply zip the manifest.json file.
+* Rename to change the file extension from ".zip" to ".xpi.
+====3. Deploy the extension====
+Deploy the extension to users using the organization's preferred software deployment mechanism.
+Possible deployment methods include:
+* Enterprise Policy (policies.json)
+* Windows Group Policy (ADMX templates)
+* Microsoft Intune
+* macOS Configuration Profiles
+* Linux enterprise package deployment
+* Manual installation, if appropriate
+Thunderbird's Enterprise Policies already support automatically installing extensions from either local files or URLs, as well as force-installing extensions so users cannot remove them. The newer ExtensionSettings policy also allows administrators to automatically install or force-install a specific extension by ID using an install_url.
+<!--
+ TODO: Link to the Thunderbird Enterprise Policy documentation for extension deployment.
+-->
+===4. Install / enable the extension===
+Depending on the deployment method, the extension may:
+* be installed automatically when Thunderbird starts,
+* be force-installed by enterprise policy,
+* or be installed manually by the user via the Add-ons Manager.
+'''Once installed, no additional account configuration is normally required.'''
+====User experience====
+Once the extension is installed, Thunderbird automatically uses the registered OAuth2 provider whenever an account matches the configured hostname or email-domain rules.
+
+When an extension is supplying the OAuth2 configuration, Thunderbird indicates this in Thunderbird App Menu {menu ☰} > {menu Account Settings}, by displaying the name of the extension that is providing the OAuth2 settings. This allows users and administrators to see which extension is customizing their OAuth configuration.
+<!--
+TODO: Add screenshot
+-->
+
+[[UI:details_end]]
+
+[[UI:details_start]]
+==Per-account OAuth2 customization (recommended for advanced users)==
+Who is this for?
+*Advanced users
+*Testing
+*Individual account configuration
+If only a single account needs custom OAuth2 settings, Thunderbird also supports configuring OAuth2 directly for an individual account.
+
+Unlike the add-on approach, these settings affect only that account and are not intended for organization-wide deployment.
+
+This is currently available for Microsoft Exchange accounts, with support for IMAP currently under development.
+[[UI:details_start]]
+===Per-account OAuth2 Microsoft Exchange customization===
+====General Setup Instructions====
+#Create a new account with a Microsoft 365 email address.
+#Choose manual configuration.
+#Choose the EWS or Graph protocol.
+#For the Exchange URL enter:
+#*For EWS: https://outlook.office365.com/EWS/Exchange.asmx
+#*For Graph: https://graph.microsoft.com/
+#Select OAuth for authentication.
+#Username is your email address.
+#Choose Advanced Configuration... and accept the resulting dialog.
+#In server settings, click the Advanced... button.
+#Check the "Override Office365 Settings" check box.
+#In Application ID, enter the application ID your organization has set up. Sometimes, it will be called a "Client ID".
+#Enter your organization's Microsoft 365 Tenant ID.
+#Optionally set the redirect URI. Default value is http://localhost
+#Optionally set the endpoint host. Default value is https://login.microsoftonline.com
+#Optionally set the OAuth scopes. Default values are:
+#*For EWS: https://outlook.office.com/EWS.AccessAsUser.All offline_access
+#*For Graph: https://graph.microsoft.com/User.Read https://graph.microsoft.com/MailboxFolder.ReadWrite https://graph.microsoft.com/Mail.ReadWrite https://graph.microsoft.com/Mail.Send offline_access
+# Accept the Advanced Account Settings dialog and trigger an email update. Messages should download and the account should operate as normal.
+====US Government Compute Cloud (GCC)====
+GCC does not include the common Thunderbird application ID, so all GCC users must have an organization that registers a Thunderbird application ID for their tenant IDs. When following the instructions above, use the Application ID and Tenant ID provided to you by your administrator and the following values for the other fields:
+
+*Exchange URL:
+**For EWS: https://outlook.office365.us/EWS/Exchange.asmx
+**For Graph: https://graph.microsoft.us/
+*Redirect URI: http://localhost
+*Endpoint Host: https://login.microsoftonline.us
+
+
+[[UI:details_end]]
+[[UI:details_end]]
+
+[[UI:details_start]]
+==Future standards, like PACC and DCR, will eliminate most OAuth custom configuration==
+Thunderbird is considering implementing emerging standards intended to reduce the amount of manual OAuth2 configuration required including:
+* [https://datatracker.ietf.org/doc/draft-ietf-mailmaint-pacc/ PACC (Provisioning and Configuration Capabilities)]
+* [https://datatracker.ietf.org/doc/draft-ietf-mailmaint-dcr/ Dynamic Client Registration (DCR)]
+Over time, these standards should allow Thunderbird to discover or negotiate OAuth2 configuration automatically with compatible servers, reducing (or potentially eliminating) the need to distribute client IDs or manually configure OAuth settings.
+[[UI:details_end]]
