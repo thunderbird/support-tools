@@ -1,8 +1,20 @@
 # Protected wiki tokens in a staged Google Doc
 
-This page is written to be **pasted into a review Doc** as a cheat sheet for contributors.
-(In Google Docs, turn on *Tools → Preferences → Automatically detect Markdown* first, so
-the headings, bullets and `code` spans come through as formatting.)
+**There is a Google Doc version of this page, with every token already highlighted:**
+<https://docs.google.com/document/d/1cZLEQwU-4WXeWSSOspTJWD9EgxZAE4hPpJHzCQ9ciOk/edit>
+
+Copy a token straight out of that Doc into an article Doc and it keeps its formatting,
+which plain Markdown cannot do. The Doc is generated from [`protected-tokens.wiki`](protected-tokens.wiki)
+by the tool itself, so every example is formatted by the same code path it documents:
+
+```bash
+npm run dev -- import-source docs/protected-tokens.wiki \
+  --title "SUMO KB — protected wiki tokens (cheat sheet)"
+```
+
+The rest of this page is the same content in Markdown, for reading on GitHub. (If you do
+paste *this* file into a Doc, turn on *Tools → Preferences → Automatically detect Markdown*
+first — but note the tokens will arrive as plain text, not highlighted.)
 
 ## The one rule that matters
 

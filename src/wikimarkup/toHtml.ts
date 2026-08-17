@@ -241,7 +241,15 @@ export function wikiToHtml(source: string): WikiConversionResult {
   //     one line (O5) would destroy the code, so protect the whole block verbatim; each
   //     of its lines becomes its own Doc paragraph and comes back unchanged. Single-line
   //     <code> stays real monospace formatting.
-  text = text.replace(/<code>[^\n]*\n[\s\S]*?<\/code>/gi, (m) => store("code-block", m));
+  //     Two guards, both load-bearing, because a `<code>` with no `</code>` after it on the
+  //     same line is otherwise indistinguishable from prose that merely mentions the tag —
+  //     and either false match runs to a LATER block's `</code>`, swallowing every token in
+  //     between (seen while staging docs/protected-tokens.wiki, which does both):
+  //       * the opener must start its own line (real blocks always do), and
+  //       * its `</code>` must not be on that line (that is the single-line inline case).
+  text = text.replace(/^[ \t]*<code>(?![^\n]*<\/code>)[\s\S]*?<\/code>/gim, (m) =>
+    store("code-block", m),
+  );
 
   // 1b) HTML comments are editorial notes, not prose — protect them verbatim (newlines
   //     and all) so a comment on its own line stays on its own line in the Doc (D20)

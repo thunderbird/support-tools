@@ -1,0 +1,61 @@
+Cheat sheet for contributors reviewing a staged SUMO article in Google Docs. Every token below is shown '''already formatted''' — copy one straight out of this Doc into an article Doc and it keeps its highlight.
+
+==The one rule that matters==
+A '''highlighted''' run is wiki source and is copied back out verbatim. Everything else is treated as prose.
+*'''Any''' highlight colour counts — the check is only "does this run have a background colour".
+*'''Please use the house pale yellow, #FFF2CC''' — the colour the tool applies when it stages a Doc. Others work, but one consistent colour is what makes "don't touch this" readable at a glance.
+*Courier New is only a visual cue. The font is not part of the check.
+
+==What survives an edit==
+#Highlighted, any colour → comes back '''verbatim''', as wiki source.
+#Courier New with '''no''' highlight → comes back as an inline <code>code</code> span.
+#Neither → ordinary prose; any wiki meaning is lost.
+
+So edit the words '''around''' a token, never the characters inside it. Highlight a sentence by accident and it will be published as raw markup; delete a token's highlight and the article silently loses that construct. Adding a token by hand is fine: type the wiki text, then highlight it in #FFF2CC.
+
+Two more habits: leave a line that is '''nothing but tokens''' on its own line — that is how the article's structure survives the trip back — and don't tidy a token's spacing or capitalisation, because it is source code, not prose.
+
+==The 16 protected kinds==
+These are the labels the tool reports after a conversion ("Protected tokens preserved verbatim").
+
+===Inline===
+#{for win,mac} … {/for} — the OS / version conditionals
+#{note} … {/note}
+#{warning} … {/warning}
+#{key Ctrl+T} — a keyboard shortcut
+#{menu Account Settings} — a menu path or label
+#{button Add WebDAV} — a button label
+#{filepath prefs.js} — a file name or path
+#{pref mail.server.default} — a preference name or value
+#[[Image:Name of screenshot]] — an image from the SUMO gallery
+#[[Template:Sample]] and [[Include:Sample]] — templates
+#[[How to Use Attachments]] — any other link to a KB article
+#__TOC__, __NOTOC__ and friends — the magic words
+
+===Whole blocks, protected in one piece with their line breaks===
+13. A wiki table:
+{|
+! Provider !! Supported
+|-
+| WebDAV || yes
+|}
+14. A code block spanning more than one line, which is preformatted on SUMO, so its line breaks and indentation are kept exactly:
+<code>
+{
+  "manifest_version": 2
+}
+</code>
+A '''single-line''' <code>like this</code> is '''not''' a token — it becomes real monospace formatting instead.
+
+15. An HTML comment, including a multi-line one:
+<!-- TODO: add a screenshot of the Attachments pane -->
+A comment starting <!-- TODO (sumo-kb-tools): --> is a note the tool left for you. Act on it, then delete the comment before publishing.
+
+16. The leading indent and definition-list markers on a line:
+
+:like this one, where only the colon is the token
+
+==What is not a token==
+Rendered as normal Doc formatting and converted back automatically: headings, '''bold''', ''italic'', bulleted and numbered lists, external links, a single-line <code>code</code> span, and the inline HTML tags u, s, del, sub, sup, blockquote and br. Edit these like ordinary text.
+
+One known limitation: a sub-bullet nested under a numbered step cannot be shown as a bullet by the Google Docs API, so it appears as a. / b. and converts back as a number. The tool leaves a TODO comment above any list where that happens.
