@@ -40,8 +40,15 @@ npm run fetch -- thunderbird-and-gmail --locale de
 # Convert WikiMarkup source (e.g. copied from SUMO's edit view) into an editable Doc
 npm run dev -- import-source article.wiki
 cat article.wiki | npm run dev -- import-source        # or via stdin
+pbpaste | npm run dev -- import-source --title "Custom OAuth for Thunderbird"
 npm run dev -- import-source article.wiki --html       # print HTML, skip Doc (no Google needed)
 ```
+
+`-t, --title` names the Doc. Without it the title comes from the first heading in the
+source, falling back to "Imported SUMO article" — worth setting when you pipe in a
+fragment that has no heading of its own. `draft` and `revise --doc` take the same option.
+The option must come *after* the command name.
+
 
 ```bash
 # Convert an edited Google Doc back into paste-ready WikiMarkup
