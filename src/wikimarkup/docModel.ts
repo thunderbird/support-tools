@@ -17,7 +17,8 @@ export interface Run {
 }
 
 export type Block =
-  | { type: "heading"; level: number; runs: Run[] }
+  // tight: the heading directly follows a token-only line → drop its spaceAbove.
+  | { type: "heading"; level: number; runs: Run[]; tight?: boolean }
   // tight: no blank line before this paragraph in the source → no spacer in the Doc.
   | { type: "paragraph"; runs: Run[]; tight?: boolean }
   | { type: "listItem"; ordered: boolean; level: number; runs: Run[] }
@@ -104,10 +105,15 @@ export function htmlToModel(html: string): Block[] {
     .children()
     .each((_i: number, el: any) => {
       const tag: string = el.name?.toLowerCase?.() ?? "";
+      const tight = (api(el).attr("class") ?? "") === TIGHT_CLASS;
       if (/^h[1-6]$/.test(tag)) {
-        blocks.push({ type: "heading", level: Number(tag[1]), runs: inlineRuns(api, el) });
+        blocks.push({
+          type: "heading",
+          level: Number(tag[1]),
+          runs: inlineRuns(api, el),
+          ...(tight && { tight }),
+        });
       } else if (tag === "p") {
-        const tight = (api(el).attr("class") ?? "") === TIGHT_CLASS;
         blocks.push({ type: "paragraph", runs: inlineRuns(api, el), ...(tight && { tight }) });
       } else if (tag === "hr") {
         blocks.push({ type: "hr" });

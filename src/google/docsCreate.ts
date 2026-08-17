@@ -94,11 +94,17 @@ export function buildRequests(blocks: Block[]): docs_v1.Schema$Request[] {
     const paraEnd = index;
 
     if (block.type === "heading") {
+      // A heading style carries its own spaceAbove, which after a structural token line
+      // (`[[UI:details_start]]`, `__TOC__`, …) reads as a blank line the source never had.
+      // Zero it out for that case only — see TIGHT_CLASS / D20.
       paragraphStyleReqs.push({
         updateParagraphStyle: {
           range: { startIndex: paraStart, endIndex: paraEnd },
-          paragraphStyle: { namedStyleType: `HEADING_${block.level}` },
-          fields: "namedStyleType",
+          paragraphStyle: {
+            namedStyleType: `HEADING_${block.level}`,
+            ...(block.tight && { spaceAbove: { magnitude: 0, unit: "PT" } }),
+          },
+          fields: block.tight ? "namedStyleType,spaceAbove" : "namedStyleType",
         },
       });
     } else if (block.type === "listItem") {

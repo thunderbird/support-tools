@@ -31,9 +31,15 @@ interface ProtectedItem {
 const TOKEN_LINE = new RegExp(`^(?:${PH_OPEN}\\d+${PH_CLOSE}\\s*)+$`);
 
 /**
- * Marks a <p> that had NO blank line before it in the source, so the Doc builder knows
- * not to open a gap there (D20). Only reachable after a token line, heading, list or
- * rule — two consecutive prose lines are joined into a single <p> (O5).
+ * Marks a block that must NOT have a gap above it in the Doc (D20).
+ *
+ *   * on a <p>: the source had no blank line before it, so the Doc builder skips the D18
+ *     spacer paragraph. Only reachable after a token line, heading, list or rule — two
+ *     consecutive prose lines are joined into a single <p> (O5).
+ *   * on a heading: the heading directly follows a token-only line. The gap being closed
+ *     there is the heading style's own `spaceAbove`, not a spacer paragraph, so this is
+ *     set for the token-line case ONLY — normal prose→heading spacing is wanted
+ *     typography, and stripping it everywhere would jam the whole article together.
  */
 export const TIGHT_CLASS = "wiki-tight";
 
@@ -131,6 +137,7 @@ function parseBlocks(text: string): string {
   let para: string[] = [];
   let i = 0;
   let prevBlank = true; // was the previous source line blank (or start of document)?
+  let prevTokenLine = false; // was the previous block a token-only line?
   let paraTight = false; // did the paragraph being built start without a blank line above?
 
   const tightAttr = (tight: boolean) => (tight ? ` class="${TIGHT_CLASS}"` : "");
@@ -150,6 +157,7 @@ function parseBlocks(text: string): string {
     if (trimmed === "") {
       flushPara();
       prevBlank = true;
+      prevTokenLine = false;
       i++;
       continue;
     }
@@ -157,8 +165,12 @@ function parseBlocks(text: string): string {
     const h = /^(={1,6})\s*(.*?)\s*\1$/.exec(trimmed);
     if (h) {
       flushPara();
-      out.push(`<h${h[1].length}>${inline(h[2])}</h${h[1].length}>`);
+      // A heading straight after `[[UI:details_start]]` etc. must hug it, or the heading's
+      // spaceAbove reads as a blank line the source never had (D20).
+      const level = h[1].length;
+      out.push(`<h${level}${tightAttr(prevTokenLine && !prevBlank)}>${inline(h[2])}</h${level}>`);
       prevBlank = false;
+      prevTokenLine = false;
       i++;
       continue;
     }
@@ -167,6 +179,7 @@ function parseBlocks(text: string): string {
       flushPara();
       out.push("<hr>");
       prevBlank = false;
+      prevTokenLine = false;
       i++;
       continue;
     }
@@ -180,6 +193,7 @@ function parseBlocks(text: string): string {
       }
       out.push(buildList(run));
       prevBlank = false;
+      prevTokenLine = false;
       continue;
     }
 
@@ -190,6 +204,7 @@ function parseBlocks(text: string): string {
       flushPara();
       out.push(`<p${tightAttr(!prevBlank)}>${inline(trimmed)}</p>`);
       prevBlank = false;
+      prevTokenLine = true;
       i++;
       continue;
     }
@@ -197,6 +212,7 @@ function parseBlocks(text: string): string {
     if (!para.length) paraTight = !prevBlank;
     para.push(trimmed);
     prevBlank = false;
+    prevTokenLine = false;
     i++;
   }
   flushPara();
