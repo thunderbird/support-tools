@@ -60,6 +60,11 @@ In an imported Doc, prose is rendered for easy editing, while wiki-specific cons
 (`{for}`, `{note}`, images, templates, internal links, tables) are preserved verbatim as
 **highlighted monospace tokens** — edit around them, but leave the tokens intact.
 
+[`docs/protected-tokens.md`](docs/protected-tokens.md) lists all 16 protected kinds and the
+editing rules, and is written to be pasted into a review Doc as a contributor cheat sheet.
+The highlight is the load-bearing signal — **any** colour marks a run as wiki source, so
+prefer the standard pale yellow (`#FFF2CC`) and don't highlight prose by accident.
+
 The command prints the URL of the created Google Doc.
 
 > **A Chromium window will briefly open during fetch.** The SUMO API is behind a bot
