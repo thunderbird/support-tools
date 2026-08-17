@@ -40,6 +40,16 @@ export function printImageReport(r: ImageAttachReport): void {
   }
 }
 
+/** Flag the lists whose `#*` sub-markers the Doc had to flatten (O6). */
+export function printMixedListNotes(notes: number): void {
+  if (!notes) return;
+  console.log(
+    `\n⚠️  ${notes} list${notes === 1 ? "" : "s"} with "#*" sub-bullets: the Doc shows those ` +
+      `as "a./b." and to-markup returns "##". A TODO comment is in the Doc above each one — ` +
+      `restore "#*" before pasting into SUMO.`,
+  );
+}
+
 /** Emit WikiMarkup to a Google Doc (--doc), a file (--out), or stdout. */
 export async function emitWiki(
   wiki: string,
@@ -51,9 +61,15 @@ export async function emitWiki(
 
   if (opts.doc) {
     const title = opts.title ?? deriveTitle(wiki, defaultTitle);
-    const { url, images } = await wikiToGoogleDoc(title, docIntro, wiki, opts.images);
+    const { url, images, mixedListNotes } = await wikiToGoogleDoc(
+      title,
+      docIntro,
+      wiki,
+      opts.images,
+    );
     console.log(`\n✅ Created Google Doc:\n   ${url}`);
     if (images) printImageReport(images);
+    printMixedListNotes(mixedListNotes);
   } else if (opts.out) {
     await fs.writeFile(opts.out, wiki);
     console.log(`\n✅ Wrote WikiMarkup to ${opts.out}`);

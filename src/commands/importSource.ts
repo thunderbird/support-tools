@@ -5,7 +5,7 @@
 import { promises as fs } from "node:fs";
 import { wikiToHtml } from "../wikimarkup/toHtml.js";
 import { wikiToGoogleDoc } from "../stageDoc.js";
-import { deriveTitle, printReport, printImageReport } from "../output.js";
+import { deriveTitle, printReport, printImageReport, printMixedListNotes } from "../output.js";
 
 interface ImportOptions {
   title?: string;
@@ -35,7 +35,7 @@ export async function runImportSource(file: string | undefined, options: ImportO
   }
 
   console.log(`Authorizing with Google and creating Doc "${title}"…`);
-  const { url, report, images } = await wikiToGoogleDoc(
+  const { url, report, images, mixedListNotes } = await wikiToGoogleDoc(
     title,
     "⚠️ Draft staged from WikiMarkup — SUMO is the source of truth, not this Doc.",
     source,
@@ -44,5 +44,6 @@ export async function runImportSource(file: string | undefined, options: ImportO
 
   console.log(`\n✅ Created Google Doc:\n   ${url}`);
   if (images) printImageReport(images);
+  printMixedListNotes(mixedListNotes);
   printReport(report);
 }

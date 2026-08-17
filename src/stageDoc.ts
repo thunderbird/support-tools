@@ -3,6 +3,7 @@
 
 import { wikiToHtml, type WikiConversionReport } from "./wikimarkup/toHtml.js";
 import { htmlToModel, type Block } from "./wikimarkup/docModel.js";
+import { noteMixedListMarkers } from "./wikimarkup/mixedLists.js";
 import { createDocFromModel } from "./google/docsCreate.js";
 import { authorize } from "./google/auth.js";
 import { attachImages, type ImageAttachReport } from "./images.js";
@@ -33,6 +34,8 @@ export interface StagedDoc {
   id: string;
   report: WikiConversionReport;
   images?: ImageAttachReport;
+  /** Reminders added above lists whose `#*` sub-markers the Doc cannot show (O6). */
+  mixedListNotes: number;
 }
 
 export async function wikiToGoogleDoc(
@@ -43,11 +46,13 @@ export async function wikiToGoogleDoc(
 ): Promise<StagedDoc> {
   const { html, report } = wikiToHtml(wikiSource);
   const importedAt = new Date().toISOString();
-  const blocks = [...headerBlocks(intro, importedAt), ...htmlToModel(html)];
+  // Only on the Doc path: `--out`/stdout keep the real `#*` markers, so no reminder is due.
+  const { blocks: body, notes } = noteMixedListMarkers(htmlToModel(html));
+  const blocks = [...headerBlocks(intro, importedAt), ...body];
 
   const auth = await authorize();
   const doc = await createDocFromModel(auth, title, blocks);
   // Screenshots go in afterwards, against the finished doc's real indices (D19).
   const images = imagesDir ? await attachImages(auth, doc.id, imagesDir) : undefined;
-  return { url: doc.url, id: doc.id, report, images };
+  return { url: doc.url, id: doc.id, report, images, mixedListNotes: notes };
 }
