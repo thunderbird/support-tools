@@ -1,0 +1,11 @@
+End users have limited OAuth configuration possibilities. Here is a Microsoft Exchange example.
+
+= Custom TenantID and AppID for Microsoft Exchange =
+
+When creating an Exchange account in Thunderbird, end users can override their TenantID and AppID as follows:
+
+# Create your Exchange Account as normal on first run  or Thunderbird app menu {menu ☰} > {menu Add Account} > {menu Email}
+# Set up  your custom configuration: Thunderbird app menu {menu ☰} > {menu Account Settings} underneath your account e.g. nemo@o365.thunderbird.net > {menu Advanced…}
+# Check '''Override Office365 Settings''' and add your Tenant ID and AppId and click {button OK}
+
+See [[Custom OAuth for Thunderbird]] for the other ways to customize OAuth2 in Thunderbird.
