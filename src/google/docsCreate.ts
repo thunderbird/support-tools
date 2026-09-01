@@ -5,7 +5,13 @@ import { google, type docs_v1 } from "googleapis";
 import type { OAuth2Client } from "google-auth-library";
 import type { Block, Run } from "../wikimarkup/docModel.js";
 
-const HIGHLIGHT = { color: { rgbColor: { red: 1, green: 0.949, blue: 0.8 } } };
+// Token highlight: pale pink #F4CCCC (Docs' palest-red standard swatch). It was the
+// pale yellow #FFF2CC until 2026-08-31, when it turned out to be near-identical to the
+// tint Google Docs paints over commented text — a reviewer's comment on a heading made
+// the heading look like a protected token (D25). Nothing reads this colour back:
+// `isProtected` in fromDoc.ts only asks whether a run HAS a background, so Docs staged
+// in the old yellow keep working.
+const HIGHLIGHT = { color: { rgbColor: { red: 244 / 255, green: 204 / 255, blue: 204 / 255 } } };
 const MONO = { fontFamily: "Courier New" };
 
 /** Docs textStyle + field mask for a run; null when the run needs no styling. */

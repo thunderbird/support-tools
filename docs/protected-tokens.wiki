@@ -1,7 +1,7 @@
 '''A highlighted run is wiki source: it comes back out verbatim. Edit around a token, never inside it.'''
 
 ==Copy from here==
-Every token below is already formatted. Copy one into an article Doc and it keeps its highlight. House highlight colour: #FFF2CC (Highlight colour → Custom).
+Every token below is already formatted. Copy one into an article Doc and it keeps its highlight. House highlight colour: pink #F4CCCC — Docs' own palest-red swatch, so it is one click under Highlight colour, no custom hex to type.
 
 ===Inline tokens 1–12===
 #{for win,mac} … {/for} — OS / version conditional
@@ -51,9 +51,9 @@ Headings are '''not''' tokens: the level lives in the paragraph's Doc style, so 
 #Courier New with '''no''' highlight → an inline <code>code</code> span.
 #Neither → ordinary prose; any wiki meaning is lost.
 
-'''Any''' highlight colour counts — the check is only "does this run have a background colour". #FFF2CC is just the colour the tool applies, and one consistent colour is what makes "don't touch this" readable at a glance. Courier New is a visual cue only; the font is not part of the check.
+'''Any''' highlight colour counts — the check is only "does this run have a background colour". #F4CCCC is just the colour the tool applies, and one consistent colour is what makes "don't touch this" readable at a glance. It used to be pale yellow, which was too close to the tint Google Docs paints over commented text — a comment on a heading made the heading look protected. Docs staged in the old yellow still work. Courier New is a visual cue only; the font is not part of the check.
 
-Highlight a sentence by accident and it will be published as raw markup; delete a token's highlight and the article silently loses that construct. Adding a token by hand is fine: type the wiki text, then highlight it in #FFF2CC.
+Highlight a sentence by accident and it will be published as raw markup; delete a token's highlight and the article silently loses that construct. Adding a token by hand is fine: type the wiki text, then highlight it in #F4CCCC.
 
 ===Two habits===
 *Leave a line that is '''nothing but tokens''' on its own line — that is how the article's structure survives the trip back.

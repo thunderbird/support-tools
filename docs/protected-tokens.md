@@ -16,7 +16,7 @@ first — but note the tokens will arrive as plain text, not highlighted.)
 
 These are the labels the CLI reports after a conversion ("Protected tokens preserved
 verbatim"). Anything not on this list is reversible formatting and is rendered normally
-in the Doc. House highlight colour: `#FFF2CC`.
+in the Doc. House highlight colour: pink `#F4CCCC`.
 
 Inline constructs:
 
@@ -70,9 +70,14 @@ treated as prose.**
 
 * **Any** highlight colour counts — the detector looks only for "this run has a background
   colour", never for a specific one (`isProtected` in `src/wikimarkup/fromDoc.ts`).
-* **Please use the standard pale yellow, `#FFF2CC`,** which is what the tool applies when it
-  stages a Doc. Other colours work, but a consistent colour is what makes "don't touch
-  this" readable at a glance.
+* **Please use the standard pale pink, `#F4CCCC`,** which is what the tool applies when it
+  stages a Doc — it is Docs' own palest-red swatch, so it is one click in *Highlight
+  colour*, no custom hex to type. Other colours work, but a consistent colour is what makes
+  "don't touch this" readable at a glance.
+* It was pale yellow `#FFF2CC` until 2026-08-31. That is near-identical to the tint Google
+  Docs paints over **commented** text, so a reviewer's comment on a heading made the heading
+  look like a protected token. Docs already staged in yellow keep working — the detector
+  only asks whether a run has a background at all.
 * The **Courier New** font is only a visual cue; it is not part of the test.
 
 Three ways that plays out when you edit:
@@ -95,7 +100,7 @@ you delete a token's highlight, the article silently loses that construct.
 * **Do not "fix" a token's spacing or capitalisation.** It is source code, not prose.
 * **A `<!-- TODO (sumo-kb-tools): … -->` comment** is a note the tool added for you — act on
   it, then delete the comment before publishing.
-* Adding a *new* token by hand works: type the wiki text, then highlight it in `#FFF2CC`.
+* Adding a *new* token by hand works: type the wiki text, then highlight it in `#F4CCCC`.
 
 ### What is *not* a token
 

@@ -78,7 +78,7 @@ function protectedSpan(raw: string): string {
   // Highlighted monospace so editors see "don't hand-edit this" — and Bucket 3 can
   // read the verbatim source straight back out.
   return (
-    `<span style="background-color:#fff2cc;font-family:'Courier New',monospace">` +
+    `<span style="background-color:#f4cccc;font-family:'Courier New',monospace">` +
     `${escapeHtml(raw)}</span>`
   );
 }

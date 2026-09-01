@@ -67,7 +67,7 @@ In an imported Doc, prose is rendered for easy editing, while wiki-specific cons
 [`docs/protected-tokens.md`](docs/protected-tokens.md) lists all 16 protected kinds and the
 editing rules, and is written to be pasted into a review Doc as a contributor cheat sheet.
 The highlight is the load-bearing signal — **any** colour marks a run as wiki source, so
-prefer the standard pale yellow (`#FFF2CC`) and don't highlight prose by accident.
+prefer the standard pale pink (`#F4CCCC`) and don't highlight prose by accident.
 
 The command prints the URL of the created Google Doc.
 
