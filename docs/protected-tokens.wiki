@@ -36,6 +36,14 @@ Every token below is already formatted. Copy one into an article Doc and it keep
 
 :like this one
 
+===Headings 1–4 — copy a whole line, then type over the text===
+Headings are '''not''' tokens: the level lives in the paragraph's Doc style, so these four carry no highlight. Copy a whole line, paragraph mark included, and the level comes with it. Never highlight a heading — the highlight wins and the level is lost.
+
+=Heading 1=
+==Heading 2==
+===Heading 3===
+====Heading 4====
+
 ==Fine print — collapse this, expand it if something looks wrong==
 
 ===What survives an edit===
@@ -52,7 +60,7 @@ Highlight a sentence by accident and it will be published as raw markup; delete 
 *Don't tidy a token's spacing or capitalisation. It is source code, not prose.
 
 ===What is not a token===
-Rendered as normal Doc formatting and converted back automatically: headings, '''bold''', ''italic'', bulleted and numbered lists, external links, a single-line <code>code</code> span, and the inline HTML tags u, s, del, sub, sup, blockquote and br. Edit these like ordinary text. A '''single-line''' <code>like this</code> is '''not''' a token — it becomes real monospace formatting instead.
+Rendered as normal Doc formatting and converted back automatically: headings (Heading 1 is <code>=text=</code>, Heading 2 <code>==text==</code>, up to Heading 6 — most articles start at Heading 2), '''bold''', ''italic'', bulleted and numbered lists, external links, a single-line <code>code</code> span, and the inline HTML tags u, s, del, sub, sup, blockquote and br. Edit these like ordinary text. A '''single-line''' <code>like this</code> is '''not''' a token — it becomes real monospace formatting instead. A heading is the one construct a highlight can '''break''': highlight the whole line and it comes back as verbatim prose with its level gone. If you would rather type markup than use the style menu, put <code>==Heading==</code> in a '''normal''' paragraph and highlight that — it publishes as a heading, but the Doc no longer shows one, so the styled version above is the better habit.
 
 A code block is preformatted on SUMO, so its line breaks and indentation are kept exactly. A comment starting <!-- TODO (sumo-kb-tools): --> is a note the tool left for you: act on it, then delete the comment before publishing.
 

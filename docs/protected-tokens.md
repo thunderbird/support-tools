@@ -42,6 +42,25 @@ Whole-block constructs (protected in one piece, newlines included):
 15. **`comment`** — an HTML comment, `<!-- … -->`, including a multi-line one
 16. **`indent`** — the leading `;` / `:` definition-list and indent markers on a line
 
+## Headings — copy a whole line
+
+Headings are **not** tokens: the level lives in the paragraph's Doc style, so the four
+examples in the Doc carry no highlight. Copy a whole line, paragraph mark included, and the
+level comes with it, then type over the text.
+
+| Doc paragraph style | Wiki source |
+| --- | --- |
+| Heading 1 | `=text=` |
+| Heading 2 (where most articles start) | `==text==` |
+| Heading 3 | `===text===` |
+| Heading 4 | `====text====` |
+
+A heading is the one construct a highlight can **break**: highlight the whole line and
+`isTokenOnly` wins over the paragraph style, so it comes back as verbatim prose with its
+level gone. If you would rather type markup than use the style menu, put `==Heading==` in a
+**normal** paragraph and highlight that — it publishes as a heading, but the Doc no longer
+shows one, so the styled version is the better habit.
+
 ## Fine print
 
 ### The one rule that matters
@@ -82,7 +101,8 @@ you delete a token's highlight, the article silently loses that construct.
 
 Rendered as normal Doc formatting, and converted back automatically: headings, **bold**,
 *italic*, bulleted and numbered lists, external links, single-line `<code>`, `<u>`, `<s>`,
-`<del>`, `<sub>`, `<sup>`, `<blockquote>`, `<br>`. Edit these like ordinary text.
+`<del>`, `<sub>`, `<sup>`, `<blockquote>`, `<br>`. Edit these like ordinary text. Headings are
+the one exception to "a highlight is always safe" — see [Headings](#headings--copy-a-whole-line).
 
 One known limitation: a `#*` bullet nested under a numbered step cannot be shown as a
 bullet by the Docs API, so it appears as `a.` / `b.` and converts back as `##`. The tool
