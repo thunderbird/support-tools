@@ -250,9 +250,13 @@ export async function replaceDocFromModel(
 
   if (title && title !== existing.data.title) {
     // The Docs API can't rename a Doc; Drive can (drive.file covers app-created files).
+    // `supportsAllDrives` is required for a Doc that lives on a shared drive — without it
+    // Drive answers 404 "File not found" even though the Docs API just edited that same
+    // file (seen on the Thunderbird shared drive, 2026-08-31).
     await google.drive({ version: "v3", auth }).files.update({
       fileId: documentId,
       requestBody: { name: title },
+      supportsAllDrives: true,
     });
   }
 
