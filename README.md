@@ -193,6 +193,35 @@ npm run dev -- publish draft.wiki --new                            # new article
 
 `<source>` can be a `.wiki` file or a Google Doc URL/id (the doc you reviewed). Paste into the article's Content field and submit for review.
 
+### The loop, end to end
+
+```
+SUMO wiki source ──import-source──▶ Google Doc ──review──▶ to-markup ──▶ .wiki ──publish──▶ SUMO
+       ▲                                                                                     │
+       └──────────────────────── paste the published source back ────────────────────────────┘
+```
+
+1. **Start from real wiki source, never from an old Doc.** Either the sumo-linter corpus
+   (`https://raw.githubusercontent.com/thunderbird/sumo-linter/main/corpus/en-US/<slug>.wiki`,
+   no login, but a periodic snapshot so it can lag) or copy it out of SUMO's edit view.
+   `import-source <file>` stages it as a Doc; `revise <file> -i "…" --doc` does the same with
+   an LLM pass first.
+2. **Review in the Doc**, then `to-markup <doc-url> --out <slug>.wiki`. This is the only
+   place the Doc-specific lint can run — highlighted prose is invisible once it is a file.
+3. **`publish <slug>.wiki --slug <slug>`** (or `--new`) copies the markup and opens the SUMO
+   form. Paste into the Content field, preview, submit. Metadata fields are hand-entered.
+4. **Paste the published source back into the repo.** Anything fixed in SUMO's editor is
+   invisible to both the `.wiki` and the Doc, and nothing syncs it back — the read API
+   returns rendered HTML, not source (D3). So from the edit view:
+   `pbpaste > <slug>.wiki`, then `sumo-lint <slug>.wiki`, then commit. Skip this and the
+   fixtures quietly become stale drafts, and the next edit starts from the wrong text.
+5. **Retire the Doc.** SUMO is the source of truth now. Trash it, keeping any Doc whose
+   comment threads are worth preserving as the review record.
+
+Rewriting a Doc in place (`import-source --replace`) deletes its whole body, which orphans
+every comment anchor — check `drive.comments.list` first, and prefer surgical edits if the
+Doc is still under review.
+
 ## Develop
 
 ```bash
