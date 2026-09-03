@@ -48,8 +48,9 @@ Note: ESM + `NodeNext` means relative imports must use `.js` extensions (e.g. `i
 - `src/wikimarkup/toHtml.ts` — WikiMarkup → HTML ("readable + protected tokens", D9).
 - `src/wikimarkup/docModel.ts` — parse that HTML into a block/run model (cheerio) for the Docs API builder.
 - `src/wikimarkup/fromDoc.ts` — Docs API document → WikiMarkup (reverse of toHtml; protected tokens are highlighted runs emitted verbatim).
-- `src/constants.ts` — `CONTENT_MARKER` boundary line separating metadata header from article body.
-- `src/stageDoc.ts` — shared WikiMarkup → Google Doc stage (used by `import-source` and `draft`).
+- `src/wikimarkup/lint.ts` — outbound lint: warns (never rewrites) about unbalanced/unknown tokens, highlighted prose, and leftover placeholders/TODOs (D26). Used by `to-markup` and `publish`.
+- `src/constants.ts` — `CONTENT_MARKER` boundary line separating metadata header from article body, and `CHEAT_SHEET_URL` (the published token cheat-sheet Doc).
+- `src/stageDoc.ts` — shared WikiMarkup → Google Doc stage (used by `import-source` and `draft`); its header carries the pre-highlighted token palette (D26).
 - `src/html.ts` — HTML → readable text (style corpus, `.html`/web-page sources).
 - `src/sources.ts` — load/normalize `draft` sources (text + Claude-native PDF/image blocks).
 - `src/github.ts` — load GitHub issues/PRs as raw Markdown (`gh` CLI, REST fallback) instead of scraping the page (D17).

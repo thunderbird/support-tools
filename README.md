@@ -69,6 +69,20 @@ editing rules, and is written to be pasted into a review Doc as a contributor ch
 The highlight is the load-bearing signal — **any** colour marks a run as wiki source, so
 prefer the standard pale pink (`#F4CCCC`) and don't highlight prose by accident.
 
+A staged Doc's metadata header also carries a **token palette**: the tokens you are most
+likely to need, already highlighted. Copy one from there instead of typing the wiki text
+and then remembering to highlight it — the palette sits above the content marker, so
+`to-markup` strips it and it never reaches the article.
+
+`to-markup` and `publish` **lint** the markup on the way out and print warnings; they
+never rewrite it. Caught: unbalanced `{note}` / `{warning}` / `{for}` /
+`[[UI:details_start]]`, `{token}` names that are not in the SUMO markup chart, highlighted
+runs that are not wiki markup at all (the "I highlighted a sentence so my reviewer would
+see it" trap — a highlight means *publish verbatim*, so it goes out as raw text and any
+bold/italic/link inside it is dropped; use a Google Docs comment instead), and leftovers
+that would publish as visible junk: `[[Image:PLACEHOLDER …]]`, `{note}TODO`, and the tool's
+own `<!-- TODO (sumo-kb-tools): … -->` reminders.
+
 The command prints the URL of the created Google Doc.
 
 > **A Chromium window will briefly open during fetch.** The SUMO API is behind a bot

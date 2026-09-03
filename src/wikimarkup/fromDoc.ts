@@ -6,6 +6,7 @@
 
 import type { docs_v1 } from "googleapis";
 import { CONTENT_MARKER } from "../constants.js";
+import { lintWikiMarkup } from "./lint.js";
 
 export interface DocConversionResult {
   wiki: string;
@@ -27,14 +28,17 @@ function cleanContent(s: string): string {
   return s.replace(/\u000B/g, "<br>").replace(/\n/g, "");
 }
 
-function renderRun(el: docs_v1.Schema$ParagraphElement): string {
+function renderRun(el: docs_v1.Schema$ParagraphElement, highlighted?: string[]): string {
   const tr = el.textRun;
   if (!tr || tr.content == null) return "";
   const content = cleanContent(tr.content);
   if (content === "") return "";
   const style = tr.textStyle ?? {};
 
-  if (isProtected(style)) return content; // verbatim wiki token
+  if (isProtected(style)) {
+    highlighted?.push(content); // kept for the outbound lint (issue #2)
+    return content; // verbatim wiki token
+  }
 
   if (style.link?.url) {
     const url = style.link.url;
@@ -55,8 +59,8 @@ function renderRun(el: docs_v1.Schema$ParagraphElement): string {
   return out;
 }
 
-function paragraphText(p: docs_v1.Schema$Paragraph): string {
-  return (p.elements ?? []).map(renderRun).join("");
+function paragraphText(p: docs_v1.Schema$Paragraph, highlighted?: string[]): string {
+  return (p.elements ?? []).map((el) => renderRun(el, highlighted)).join("");
 }
 
 /**
@@ -102,6 +106,8 @@ function listPrefix(
 
 export function docToWikiMarkup(doc: docs_v1.Schema$Document): DocConversionResult {
   const warnings: string[] = [];
+  // Every protected run in the body, so the lint can spot highlighted prose (issue #2).
+  const highlighted: string[] = [];
   const content = doc.body?.content ?? [];
   const lists = (doc.lists ?? {}) as Record<string, docs_v1.Schema$List>;
 
@@ -146,7 +152,7 @@ export function docToWikiMarkup(doc: docs_v1.Schema$Document): DocConversionResu
     const p = el.paragraph;
     if (!p) continue;
 
-    const text = paragraphText(p);
+    const text = paragraphText(p, highlighted);
 
     if (p.bullet) {
       lines.push(`${listPrefix(p, lists)} ${text}`.trimEnd());
@@ -178,5 +184,6 @@ export function docToWikiMarkup(doc: docs_v1.Schema$Document): DocConversionResu
   }
 
   const wiki = lines.join("\n").replace(/\n{3,}/g, "\n\n").trim() + "\n";
+  warnings.push(...lintWikiMarkup({ wiki, highlighted }));
   return { wiki, warnings };
 }

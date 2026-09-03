@@ -15,6 +15,7 @@ import { promises as fs, createReadStream } from "node:fs";
 import path from "node:path";
 import { google, type docs_v1 } from "googleapis";
 import type { OAuth2Client } from "google-auth-library";
+import { CONTENT_MARKER } from "./constants.js";
 
 /** SUMO renders KB images at at most 620px wide. */
 export const SUMO_MAX_WIDTH_PX = 620;
@@ -95,10 +96,20 @@ async function indexDir(dir: string): Promise<Map<string, string>> {
 
 const IMAGE_TOKEN = /\[\[Image:([^\]|]+)(?:\|[^\]]*)?\]\]/gi;
 
-/** Every [[Image:Name]] token in the doc, with the index to insert after. */
+/**
+ * Every [[Image:Name]] token in the article BODY, with the index to insert after.
+ *
+ * The metadata header is skipped: its token palette (issue #2) contains a specimen
+ * [[Image:…]] that is there to be copied, not filled in.
+ */
 function findTokens(doc: docs_v1.Schema$Document): { name: string; at: number }[] {
   const found: { name: string; at: number }[] = [];
   for (const el of doc.body?.content ?? []) {
+    const raw = (el.paragraph?.elements ?? []).map((e) => e.textRun?.content ?? "").join("");
+    if (raw.trim() === CONTENT_MARKER) {
+      found.length = 0; // anything above the marker was header, palette included
+      continue;
+    }
     for (const pe of el.paragraph?.elements ?? []) {
       const content = pe.textRun?.content;
       if (!content || pe.startIndex == null) continue;
