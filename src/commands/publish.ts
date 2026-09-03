@@ -29,8 +29,17 @@ export async function runPublish(source: string, options: PublishOptions): Promi
   const base = `https://support.mozilla.org/${options.locale}/kb`;
   const url = options.new ? `${base}/new` : `${base}/${options.slug}/edit`;
 
-  const copied = options.copy === false ? false : await copyToClipboard(wiki);
-  console.log(copied ? "✅ WikiMarkup copied to clipboard." : "⚠️ Could not copy to clipboard automatically.");
+  // Three distinct states: copied, deliberately skipped, and actually failed. They used
+  // to share one message, so `--no-copy` reported a clipboard failure that never happened.
+  const skipped = options.copy === false;
+  const copied = skipped ? false : await copyToClipboard(wiki);
+  console.log(
+    copied
+      ? "✅ WikiMarkup copied to clipboard."
+      : skipped
+        ? "Clipboard skipped (--no-copy) — the markup is printed below."
+        : "⚠️ Could not copy to clipboard automatically.",
+  );
 
   if (options.open === false) {
     console.log(`SUMO edit page:\n   ${url}`);
