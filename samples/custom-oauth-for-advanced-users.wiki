@@ -1,5 +1,7 @@
 __TOC__
-
+<!--
+TODO: Add POP3 when 156 is releaased
+-->
 = Per-account OAuth2 manual customization (recommended for advanced users) =
 
 Who is this for?
@@ -16,25 +18,25 @@ This is currently available for Microsoft Exchange accounts, with support for IM
 [[UI:details_start]]
 == Per-account OAuth2 Microsoft Exchange customization ==
 
-=== Exchange Setup Instructions ===
-# Add a new email account: Thunderbird app menu {menu ☰} > {menu Add Account} > {menu Email} and enter a Microsoft 365 email address e.g. <code>nemo@o365.thunderbird.net</code> and then click '''MANUAL CONFIGURATION''' on the bottom left of the Account hub.
+=== Exchange setup instructions ===
+# Add a new email account: Thunderbird app menu {menu ☰} > {menu Add Account} > {menu Email} and enter a Microsoft 365 email address (e.g. <code>nemo@o365.thunderbird.net</code>) and then click '''MANUAL CONFIGURATION''' on the bottom left of the Account hub.
 # Click {button Microsoft Exchange or Microsoft 365} and then click {button Set up account}.
 # In the '''Exchange settings''' dialog, type one of the following URLs into the '''Enter the service URL''' field:
 #* For EWS: https://outlook.office365.com/EWS/Exchange.asmx
 #* For Graph: https://graph.microsoft.com/
 # Click {button Find settings}. For EWS, '''Exchange Web Services''' will automatically be selected. For Graph, '''Microsoft Graph''' will be selected.
-# Your Microsoft 365 email address e.g. <code>nemo@o365.thunderbird.net</code> you used previously should be be automatically entered into the '''Username''' field (if not, then correct it).
+# Your Microsoft 365 email address (e.g. <code>nemo@o365.thunderbird.net</code>) you used in step 1 should be automatically entered into the '''Username''' field (if not, then correct it).
 # For '''Authentication Method''', select {menu OAuth2}.
 # Click '''Advanced configuration''' above the {button Connect} button.
-# In '''Server settings''', click the {button Advanced…} button above and to the right of '''Message Storage'''.
-# Check the '''Override Office365 Settings''' check box.
-# Enter the application ID your organization has set up in the '''Application ID''' field. Sometimes, it will be called a '''Client ID'''.
+# In '''Server Settings''', click the {button Advanced…} button above and to the right of '''Message Storage'''.
+# Check the '''Override Office365 Settings''' box.
+# Enter the application ID your organization has set up in the '''Application ID''' field. Sometimes it will be called a '''Client ID'''.
 # Enter your organization's Microsoft 365 Tenant ID in the '''Tenant ID''' field.
 # Optionally enter the '''Redirect URI'''. Default value is: '''http://localhost'''.
 # Optionally enter the '''Endpoint Host'''. Default value is: '''https://login.microsoftonline.com'''
 # Optionally enter the '''OAuth scopes'''. Default values are:
-#* For EWS, enter: '''https://outlook.office.com/EWS.AccessAsUser.All offline_access'''
-#* For Graph, enter: '''https://graph.microsoft.com/User.Read https://graph.microsoft.com/MailboxFolder.ReadWrite https://graph.microsoft.com/Mail.ReadWrite https://graph.microsoft.com/Mail.Send https://graph.microsoft.com/offline_access'''
+#* For EWS: '''https://outlook.office.com/EWS.AccessAsUser.All offline_access'''
+#* For Graph: '''https://graph.microsoft.com/User.Read https://graph.microsoft.com/MailboxFolder.ReadWrite https://graph.microsoft.com/Mail.ReadWrite https://graph.microsoft.com/Mail.Send https://graph.microsoft.com/offline_access'''
 # Click the {button OK} button to close the '''Advanced Account Settings''' dialog.
 # Accept the '''Reauthorize Access''' dialog and trigger an email update. Messages should download and the account should operate as normal.
 
@@ -51,11 +53,16 @@ GCC does not include the common Thunderbird application ID, so all GCC users mus
 [[UI:details_end]]
 == Per-account OAuth2 IMAP customization ==
 
-In Thunderbird 155, support for per-account OAuth2 manual configuration for IMAP accounts was added. This section will be updated with an example.
-===IMAP Setup Instructions===
-# Add a new email account: Thunderbird app menu {menu ☰} > {menu Add Account} > {menu Email} and enter an email address on an IMAP Provider e.g. <code>nemo@thundermail.com</code> and then click '''MANUAL CONFIGURATION''' on the bottom left of the Account hub.
-# Click {button IMAP - Sync across devices} and then click {button Set up account}.
-# In the '''IMAP settings''' dialog, enter the IMAP settings from your provider. Be sure to select {menu OAuth2} for '''Authentication Method'''.
-#Click '''Advanced configuration''' above the {button Connect} button.
+In Thunderbird 155, support for per-account OAuth2 manual configuration for IMAP accounts was added. IHere’s how to customize OAuth for  your IMAP account:
 
-See [[Custom OAuth for Thunderbird]] for the other ways to customize OAuth2 in Thunderbird.
+# Create your IMAP account as normal on the first run  or Thunderbird app menu {menu ☰} > {menu Add Account} > {menu Email}.
+# Enter your full name and any valid non-Exchange email address and then click {button Continue}.
+# Click '''EDIT CONFIGURATION''' on the bottom right ({note}NOTE: Do not click {button Continue}, because if you do, your system’s web browser will open, which is not what you want. If you do this, please start over again at step 1.{/note})
+# Click '''Advanced configuration''' on the bottom right.
+# In the '''Confirm Advanced Configuration''' dialog that pops up, click {button OK}.
+# Click {button Advanced…} in '''Server Settings''' (just above '''Message Storage''').
+# In the '''Advanced Account Settings''' dialog that pops up, check ✓ '''Use custom OAuth2''' settings.
+# Customize using the value for your custom OAuth provided by your mail provider or mail administrator and then {button OK} to save the settings.({note}NOTE: If '''Use system web browser''' is not checked, you must use  '''http''' not '''https''' on '''localhost''' in the '''Redirect URI:''' field.{/note})
+# Select '''Authentication Method'''  {menu OAuth2} (if not previously selected).
+
+See [[Custom OAuth for Thunderbird]] for other ways to customize OAuth2 in Thunderbird.

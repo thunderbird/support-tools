@@ -59,10 +59,17 @@ const TEXT_PAIRS: Pair[] = [
 /** Anything that reads as wiki source rather than prose. */
 const MARKUP_ISH = /\{[^}\n]*\}|\[\[|\]\]|__[A-Z]+__|<!--|<\/?code>|^\s*[|!:;]/;
 
-/** Openers/closers of the blocks whose inner lines are arbitrary text, not markup. */
+/**
+ * Openers/closers of the blocks whose inner lines are arbitrary text, not markup. Each
+ * line of such a block is its own Doc paragraph, so the run in the middle of one looks
+ * exactly like highlighted prose unless we track the block we are inside.
+ */
 const BLOCK_EDGES: { open: RegExp; close: RegExp }[] = [
   { open: /^\s*<code>/, close: /<\/code>/ },
   { open: /^\s*\{\|/, close: /^\s*\|\}/ },
+  // A multi-line comment (D22): `<!--`, then the note itself, then `-->`, three
+  // paragraphs. Its middle lines are editorial prose by definition.
+  { open: /^\s*<!--/, close: /-->/ },
 ];
 
 export interface LintInput {

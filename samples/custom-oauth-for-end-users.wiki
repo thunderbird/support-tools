@@ -1,11 +1,31 @@
-End users have limited OAuth configuration possibilities. Here is a Microsoft Exchange example.
+__TOC__
+
+End users have some OAuth configuration possibilities. Here are two examples:
 
 = Custom TenantID and AppID for Microsoft Exchange =
 
 When creating an Exchange account in Thunderbird, end users can override their TenantID and AppID as follows:
 
-# Create your Exchange Account as normal on first run  or Thunderbird app menu {menu ☰} > {menu Add Account} > {menu Email}
-# Set up  your custom configuration: Thunderbird app menu {menu ☰} > {menu Account Settings} underneath your account e.g. nemo@o365.thunderbird.net > {menu Advanced…}
-# Check '''Override Office365 Settings''' and add your Tenant ID and AppId and click {button OK}
+# Create your Exchange account as normal on the first run or Thunderbird app menu {menu ☰} > {menu Add Account} > {menu Email}.
+# Enter your full name and any valid Exchange email address.
+# Click '''MANUAL CONFIGURATION''' on the bottom left ({note}NOTE: Do not click {button Continue}, because if you do, your system’s web browser will open, which is not what you want. If you do this, please start over again at step 1.{/note})
+# In the middle, click  {button Microsoft} > {button Set up account}.
+# Type your service URL in the '''Enter the service URL''' field and then click on {button Find settings}. Here are some common service URLs:
+#* [https://outlook.office365.com/EWS/Exchange.asmx]
+#* for Government High GCC, ask your administrator. It may be, for EWS: [https://outlook.office365.us/EWS/Exchange.asmx] and for Graph: https://graph.microsoft.us/
+#* For China, ask your administrator
+# Select '''Authentication Method'''  {menu OAuth2}.
+# Uncheck '''Use default Microsoft 365 Copilot authentication settings'''.
+# Enter your custom '''Tenant ID''' and '''AppID''' in the relevant fields and then click {button Connect}.
+
+= Need more control over your OAuth2 configuration? =
+
+The Tenant ID and AppID options above are intended to make common Microsoft 365 configurations easy to set up.
+
+If you need to customize additional OAuth2 settings for Exchange, IMAP or POP accounts, you can instead create the account using OAuth2 and then configure its OAuth2 settings through Advanced Account Settings.
+
+This allows advanced users to customize settings such as the authorization and token endpoints, scopes, redirect URI, PKCE, and browser authentication method.
+
+See [[Custom OAuth for advanced users]] for per-account advanced configuration and other ways to customize OAuth2 in Thunderbird.
 
 See [[Custom OAuth for Thunderbird]] for the other ways to customize OAuth2 in Thunderbird.

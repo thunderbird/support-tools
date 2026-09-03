@@ -1,5 +1,4 @@
 __TOC__
-
 = OAuth2 provider add-ons (recommended for administrators and organizations) =
 
 Who is this for?
@@ -23,21 +22,21 @@ An add-on can provide OAuth2 configuration including:
 This allows organizations to package their OAuth2 configuration once and deploy it to many users. The API now supports two deployment models:
 
 # Registering OAuth2 providers for new mail services that Thunderbird doesn't already know about.
-# Overriding Thunderbird's built-in OAuth2 configuration for selected email domains or entire hostnames. This allows an organization to replace Thunderbird's built-in configuration only where required, while continuing to use the built-in provider for everyone else.
+# Overriding Thunderbird's built-in OAuth2 configuration for selected email domains or entire hostnames. This allows an organization to replace Thunderbird's built-in configuration only where required while continuing to use the built-in provider for everyone else.
 
-For example, an organization using Microsoft 365 with its own Azure application registration can transparently replace Thunderbird's built-in Microsoft OAuth2 configuration for users in its own email domain, while all other Microsoft 365 users continue using Thunderbird's built-in configuration.
+For example, an organization using Microsoft 365 with its own Azure application registration can transparently replace Thunderbird's built-in Microsoft OAuth2 configuration for users in its own email domain while all other Microsoft 365 users continue using Thunderbird's built-in configuration.
 
 Thunderbird also displays when OAuth2 settings are being provided by an extension, including the name of the extension, so users can easily identify where their configuration is coming from.
 
 == Administrator workflow ==
 
-Organizations that wish to deploy a common OAuth2 configuration to many users can package it as a Thunderbird WebExtension.
+Organizations that wish to deploy a common OAuth2 configuration to many users can package it as a Thunderbird WebExtension:
 
 === 1. Create the extension manifest ===
 
-Create a {filepath manifest.json} containing the OAuth provider registration and any required OAuth2 settings (client ID, authorization endpoint, token endpoint, scopes, PKCE settings, browser flow settings, hostname registrations, email domain overrides, etc.).
+Create a {filepath manifest.json} file containing the OAuth provider registration and any required OAuth2 settings (client ID, authorization endpoint, token endpoint, scopes, PKCE settings, browser flow settings, hostname registrations, email domain overrides, etc.).
 [[UI:details_start]]
-=== Example manifest.json ===
+=== Example manifest.json: ===
 <code>
 {
   "manifest_version": 2,
@@ -71,10 +70,10 @@ Create a {filepath manifest.json} containing the OAuth provider registration and
 }
 </code>
 [[UI:details_end]]
-=== 2. Package the extension into a standard Thunderbird extension (.xpi) file. ===
+=== 2. Package the extension into a standard Thunderbird extension (.xpi) file ===
 
 * Zip the manifest.json file.
-* Rename to change the file extension from ".zip" to ".xpi.
+* Rename the file extension from ".zip" to ".xpi.
 
 === 3. Deploy the extension ===
 
@@ -83,7 +82,7 @@ Deploy the extension to users using the organization's preferred software deploy
 * Enterprise Policy ({filepath policies.json})
 * Windows Group Policy (ADMX templates)
 * Microsoft Intune
-* macOS Configuration Profiles
+* macOS configuration profiles
 * Linux enterprise package deployment
 * Manual installation, if appropriate
 
@@ -93,21 +92,21 @@ Thunderbird's Enterprise Policies already support automatically installing exten
 -->
 === 4. Install / enable the extension ===
 
-Depending on the deployment method, the extension may:
+Depending on the deployment method, the extension may be:
 
-* be installed automatically when Thunderbird starts,
-* be force-installed by enterprise policy,
-* or be installed manually by the user via the Add-ons Manager.
+* installed automatically when Thunderbird starts
+* force-installed by enterprise policy
+* installed manually by the user via the Add-ons Manager
 
 '''Once installed, no additional account configuration is normally required.'''
 
 === User experience ===
 
-Once the extension is installed, Thunderbird automatically uses the registered OAuth2 provider whenever an account matches the configured hostname or email-domain rules.
+Once the extension is installed, Thunderbird automatically uses the registered OAuth2 provider whenever an account matches the configured hostname or email/domain rules.
 
-Thunderbird displays an indicator when OAuth2 settings are being provided by an extension. The indicator includes the name of the extension being used, so users can easily identify which extension, if any, is supplying their configuration. This allows users and administrators to see which extension is customizing their OAuth configuration.
+Thunderbird displays an indicator when OAuth2 settings are being provided by an extension. The indicator includes the name of the extension being used so users can easily identify which extension, if any, is supplying their configuration. This allows users and administrators to see which extension is customizing their OAuth configuration.
 <!--
-TODO: Add screenshot
+TODO: Add screenshot of the indicator
 -->
 
-See [[Custom OAuth for Thunderbird]] for the other ways to customize OAuth2 in Thunderbird.
+See [[Custom OAuth for Thunderbird]] for other ways to customize OAuth2 in Thunderbird.
