@@ -25,6 +25,6 @@ For all the details, please read one or more of the following:
 Thunderbird is considering implementing emerging standards intended to reduce the amount of manual OAuth2 configuration required, including:
 
 * [https://datatracker.ietf.org/doc/draft-ietf-mailmaint-pacc/ PACC (Provisioning and Configuration Capabilities)]
-* DCR ([https://datatracker.ietf.org/doc/draft-ietf-mailmaint-dcr/ Dynamic Client Registration])
+* [https://datatracker.ietf.org/doc/draft-ietf-mailmaint-dcr/ DCR (Dynamic Client Registration)]
 
 Over time, these standards should allow Thunderbird to discover or negotiate OAuth2 configurations automatically with compatible servers, reducing (or potentially eliminating) the need to distribute client IDs or manually configure OAuth settings.
