@@ -4,7 +4,8 @@
 
 import { loadExistingWiki } from "../existing.js";
 import { copyToClipboard, openUrl } from "../clipboard.js";
-import { lintWikiMarkup } from "../wikimarkup/lint.js";
+import { lintDoc } from "../wikimarkup/lint.js";
+import { lintWikiSource, printLint } from "../sumoLint.js";
 
 interface PublishOptions {
   slug?: string;
@@ -43,13 +44,9 @@ export async function runPublish(source: string, options: PublishOptions): Promi
       `(SUMO has no write API — submission is manual by design.)`,
   );
 
-  // The last gate before SUMO: the same outbound lint `to-markup` runs (issue #2).
-  // Text-only checks here — a .wiki file has no highlighted runs to inspect.
-  const lint = lintWikiMarkup({ wiki });
-  if (lint.length) {
-    console.warn("\n⚠️  Check these before you submit:");
-    for (const w of lint) console.warn(`  - ${w}`);
-  }
+  // The last gate before SUMO: the same outbound lint `to-markup` runs (issue #2/#4).
+  // No highlighted runs to inspect here — a .wiki file has none.
+  printLint("⚠️  Check these before you submit:", lintDoc({ wiki }), await lintWikiSource(wiki));
 
   if (!copied) {
     console.log(`\n----- WikiMarkup (copy manually) -----\n${wiki}`);

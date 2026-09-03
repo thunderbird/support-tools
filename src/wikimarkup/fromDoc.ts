@@ -6,7 +6,7 @@
 
 import type { docs_v1 } from "googleapis";
 import { CONTENT_MARKER } from "../constants.js";
-import { lintWikiMarkup } from "./lint.js";
+import { lintDoc } from "./lint.js";
 
 export interface DocConversionResult {
   wiki: string;
@@ -184,6 +184,7 @@ export function docToWikiMarkup(doc: docs_v1.Schema$Document): DocConversionResu
   }
 
   const wiki = lines.join("\n").replace(/\n{3,}/g, "\n\n").trim() + "\n";
-  warnings.push(...lintWikiMarkup({ wiki, highlighted }));
+  // Doc/workflow checks only; the wiki-text rules belong to sumo-lint now (issue #4).
+  warnings.push(...lintDoc({ wiki, highlighted }));
   return { wiki, warnings };
 }

@@ -5,6 +5,7 @@ import { promises as fs } from "node:fs";
 import { authorize } from "../google/auth.js";
 import { getDocument } from "../google/docs.js";
 import { docToWikiMarkup } from "../wikimarkup/fromDoc.js";
+import { lintWikiSource, printLint } from "../sumoLint.js";
 
 /** Accept a raw Doc id or a full Docs URL. */
 export function parseDocId(input: string): string {
@@ -39,8 +40,7 @@ export async function runToMarkup(
     console.log(wiki);
   }
 
-  if (warnings.length) {
-    console.warn("\nWarnings:");
-    for (const w of warnings) console.warn(`  - ${w}`);
-  }
+  // The markup is on its way to SUMO, so lint it: the Doc-specific warnings from the
+  // conversion plus sumo-linter over the wiki text (issue #4).
+  printLint("Warnings:", warnings, await lintWikiSource(wiki));
 }

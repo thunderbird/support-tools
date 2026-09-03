@@ -75,13 +75,24 @@ and then remembering to highlight it — the palette sits above the content mark
 `to-markup` strips it and it never reaches the article.
 
 `to-markup` and `publish` **lint** the markup on the way out and print warnings; they
-never rewrite it. Caught: unbalanced `{note}` / `{warning}` / `{for}` /
-`[[UI:details_start]]`, `{token}` names that are not in the SUMO markup chart, highlighted
+never rewrite it. Two passes run together.
+
+Ours covers the Google Docs staging surface and this tool's own leftovers: highlighted
 runs that are not wiki markup at all (the "I highlighted a sentence so my reviewer would
 see it" trap — a highlight means *publish verbatim*, so it goes out as raw text and any
-bold/italic/link inside it is dropped; use a Google Docs comment instead), and leftovers
-that would publish as visible junk: `[[Image:PLACEHOLDER …]]`, `{note}TODO`, and the tool's
-own `<!-- TODO (sumo-kb-tools): … -->` reminders.
+bold/italic/link inside it is dropped; use a Google Docs comment instead), unbalanced
+`[[UI:details_start]]`/`_end`, `{token}` names that are not in the SUMO markup chart, and
+leftovers that would publish as visible junk: `[[Image:PLACEHOLDER …]]`, `{note}TODO`, and
+the tool's own `<!-- TODO (sumo-kb-tools): … -->` reminders.
+
+The wiki-markup rules themselves are delegated to
+[**sumo-linter**](https://github.com/thunderbird/sumo-linter) — a real lexer beats our
+regexes — which adds unclosed `{note}`/`{warning}`/`{for}` reported at the offending
+token, unbalanced `'''`, mismatched heading `=` runs, unknown `[[Image:]]` parameters,
+unmatched `[[`, empty list items, and Markdown syntax leaking into wiki source. Install
+its `sumo-lint` binary and both commands pick it up automatically (`SUMO_LINT_BIN`
+overrides the path); without it they fall back to weaker built-in checks and say so. It is
+only ever run in report mode — `--fix`/`--style` are never invoked on your markup.
 
 The command prints the URL of the created Google Doc.
 
